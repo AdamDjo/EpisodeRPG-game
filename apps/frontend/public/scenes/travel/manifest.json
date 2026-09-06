@@ -1,0 +1,154 @@
+{
+  "version": 3,
+  "family": "travel",
+  "artDirection": "encre-de-sel-v2",
+  "fallbackId": "travel-tissan-route-sel-v1",
+  "assets": [
+    {
+      "id": "travel-tissan-route-sel-v1",
+      "file": "/scenes/travel/travel-tissan-route-sel-v1.webp",
+      "locationType": "tissan-route",
+      "variant": "salt-road",
+      "usage": "run-neutral",
+      "visibleFacts": [
+        "une route noire traverse une plaine de Sel blanche",
+        "de hauts pitons noirs découpent l'horizon",
+        "aucune menace active n'est visible"
+      ]
+    },
+    {
+      "id": "travel-tissan-mer-cendre-caravane-v3",
+      "file": "/scenes/travel/travel-tissan-mer-cendre-caravane-v3.webp",
+      "locationType": "tissan-desert",
+      "variant": "ash-basin-caravan",
+      "usage": "run-location",
+      "requiredSceneTags": ["caravan-rest"],
+      "visibleFacts": [
+        "cinq voyageurs entretiennent un camp de trois abris noirs",
+        "deux bêtes de bât attendent au milieu des provisions",
+        "un vieux squelette animal est à demi enfoui dans la Cendre"
+      ]
+    },
+    {
+      "id": "travel-tissan-front-sel-abri-v3",
+      "file": "/scenes/travel/travel-tissan-front-sel-abri-v3.webp",
+      "locationType": "tissan-desert",
+      "variant": "salt-front-shelter",
+      "usage": "run-location",
+      "requiredSceneTags": ["salt-front", "shelter"],
+      "visibleFacts": [
+        "un abri noir est adossé à l'escarpement du Front de Sel",
+        "quatre voyageurs et une bête se protègent d'un vent ordinaire",
+        "une ancienne bête de bât pétrifiée par le Sel est prise dans le mur"
+      ]
+    },
+    {
+      "id": "travel-doigts-col-noir-v1",
+      "file": "/scenes/travel/travel-doigts-col-noir-v1.webp",
+      "locationType": "doigts-pass",
+      "variant": "black-pass",
+      "usage": "run-neutral",
+      "visibleFacts": [
+        "une voie claire serpente entre deux parois de roche noire",
+        "des renforts d'or ancien maintiennent certaines fissures",
+        "aucune créature ni action en cours n'est visible"
+      ]
+    },
+    {
+      "id": "travel-doigts-carriere-penitentiaire-v3",
+      "file": "/scenes/travel/travel-doigts-carriere-penitentiaire-v3.webp",
+      "locationType": "doigts-quarry",
+      "variant": "penitentiary-quarry",
+      "usage": "run-location",
+      "requiredSceneTags": ["penitentiary-quarry"],
+      "visibleFacts": [
+        "une carrière pénitentiaire descend en larges terrasses blanches",
+        "quatre prisonniers travaillent sous la garde de deux surveillants",
+        "un bras squelettique dépasse d'un ancien wagon de concassage"
+      ]
+    },
+    {
+      "id": "travel-rivage-digue-noyee-v1",
+      "file": "/scenes/travel/travel-rivage-digue-noyee-v1.webp",
+      "locationType": "rivage-causeway",
+      "variant": "flooded-causeway",
+      "usage": "run-neutral",
+      "visibleFacts": [
+        "une digue claire et étroite traverse une mer noire",
+        "les vagues frappent le pied des falaises",
+        "aucune rencontre active n'est imposée par le décor"
+      ]
+    },
+    {
+      "id": "travel-rivage-falaises-pelerins-v3",
+      "file": "/scenes/travel/travel-rivage-falaises-pelerins-v3.webp",
+      "locationType": "rivage-cliffs",
+      "variant": "pilgrim-cliffs",
+      "usage": "run-location",
+      "requiredSceneTags": ["pilgrim-cliffs"],
+      "visibleFacts": [
+        "cinq pèlerins avancent sur un chemin taillé dans la falaise",
+        "deux ouvriers actionnent un monte-charge de Sel",
+        "un ancien pèlerin squelettique demeure debout dans une niche"
+      ]
+    },
+    {
+      "id": "travel-lekh-eaux-mortes-exiles-v3",
+      "file": "/scenes/travel/travel-lekh-eaux-mortes-exiles-v3.webp",
+      "locationType": "lekh-marsh",
+      "variant": "dead-waters-exiles",
+      "usage": "run-location",
+      "requiredSceneTags": ["exile-camp"],
+      "visibleFacts": [
+        "trois huttes sur pilotis occupent les Eaux Mortes",
+        "quatre exilés réparent une barque, un filet et leur maigre prise",
+        "un ancien noyé est retenu sous les racines blanches"
+      ]
+    },
+    {
+      "id": "travel-velkhar-seuil-controle-v3",
+      "file": "/scenes/travel/travel-velkhar-seuil-controle-v3.webp",
+      "locationType": "velkhar-outskirts",
+      "variant": "city-checkpoint",
+      "usage": "run-location",
+      "requiredSceneTags": ["city-checkpoint"],
+      "visibleFacts": [
+        "deux gardes inspectent une charrette sous la porte de Velkhar",
+        "un greffier pèse les laissez-passer devant une courte file",
+        "une main coupée et conservée au Sel est exposée près de la balance"
+      ]
+    }
+  ],
+  "eventAssets": [
+    {
+      "id": "travel-tissan-tempete-caravane-v4",
+      "file": "/scenes/travel/travel-tissan-tempete-caravane-v4.webp",
+      "locationType": "tissan-desert",
+      "variant": "overturned-caravan",
+      "usage": "run-event",
+      "requiredSceneTags": ["salt-storm", "caravan"],
+      "visibleFacts": [
+        "trois larges bandes de vent de Sel frappent une caravane renversée",
+        "quatre voyageurs tentent de sauver une bête de bât",
+        "un cinquième voyageur vient d'être empalé par l'essieu brisé"
+      ],
+      "eventType": "salt-storm-caravan",
+      "requiresEventMatch": true
+    },
+    {
+      "id": "travel-tissan-tisseur-raiders-v2",
+      "file": "/scenes/travel/travel-tissan-tisseur-raiders-v2.webp",
+      "locationType": "tissan-desert",
+      "variant": "raider-ambush",
+      "usage": "run-event",
+      "requiredSceneTags": ["tisseur", "raiders"],
+      "visibleFacts": [
+        "un immense Tisseur blindé jaillit sous une route noire",
+        "le monstre déchire un pillard tandis que deux autres l'attaquent",
+        "un quatrième pillard cache sa tête sous une caisse renversée"
+      ],
+      "eventType": "tisseur-attack",
+      "requiresEventMatch": true
+    }
+  ]
+}
