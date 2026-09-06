@@ -54,6 +54,11 @@ Un contrat peut être une exploration de donjon, une escorte, une enquête, une 
 récupération, une négociation ou un dilemme. La majorité des contrats majeurs mène vers un lieu
 très dangereux, mais le système ne suppose jamais que toute quête est un donjon.
 
+Le contrat est une **fonction de jeu**, pas l'identité imposée au personnage. Le survivant peut être
+guide, assassin, érudit, fugitif, pèlerin ou porter un concept entièrement libre. Il accepte une
+mission parce qu'elle finance son départ, ouvre une destination ou sert sa motivation personnelle ;
+cela ne fait pas de tous les personnages des chasseurs de primes.
+
 ### Ce que le backend possède
 
 | Champ               | Rôle                                                               |
@@ -263,14 +268,20 @@ La v0.2.1 utilise une bibliothèque pré-générée et contrôlée, sans génér
 | Famille   | Cible initiale |
 | --------- | -------------- |
 | Auberge   | 6 à 8 images   |
-| Voyages   | 12 à 15 images |
-| Donjons   | 25 à 35 images |
-| **Total** | **45 à 60**    |
+| Voyages   | 8 à 10 images  |
+| Donjons   | 16 à 20 images |
+| **Total** | **30 à 38**    |
 
 Une même image peut servir à plusieurs scènes de la même famille, avec deux ou trois variantes pour
 limiter la répétition. La narration rend la scène unique. Une image manquante ou impossible à
 charger retombe sur un décor de thème ; aucune information nécessaire pour jouer ne dépend de
 l'image seule.
+
+Les scènes fixes de l'Auberge peuvent montrer leurs interactions récurrentes. Pendant un run,
+l'image décrit par défaut le lieu, sa lumière et sa matière sans imposer un monstre ou une action que
+la narration IA pourrait contredire. Le personnage joueur n'est jamais représenté ; un dialogue avec
+un PNJ est cadré subjectivement. Les images d'action éventuelles utilisent un identifiant
+événementiel explicite et ne servent jamais de décor générique.
 
 ---
 

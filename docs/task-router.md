@@ -30,6 +30,7 @@ ligne** — charger tout le vault n'apporte rien et noie la tâche.
 | Backend / service / API    | `docs/tech/RULES.md`                               |
 | Shared contracts           | `packages/shared/CLAUDE.md` + `docs/tech/RULES.md` |
 | UI, tokens, UI Kit         | `docs/tech/FRONTEND.md`                            |
+| Direction artistique       | `docs/tech/ART_DIRECTION.md`                       |
 | Authentification           | `docs/tech/AUTH.md`                                |
 | Images de scène dynamiques | `docs/tech/SCENE_IMAGES.md`                        |
 | Sécurité                   | `docs/tech/SECURITY.md`                            |

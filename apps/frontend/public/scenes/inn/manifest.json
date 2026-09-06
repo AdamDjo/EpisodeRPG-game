@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "family": "inn",
+  "artDirection": "encre-de-sel-v2",
+  "fallbackId": "inn-comptoir-encre-de-sel-v3",
+  "assets": [
+    {
+      "id": "inn-comptoir-encre-de-sel-v3",
+      "file": "/scenes/inn/inn-comptoir-encre-de-sel-v3.webp",
+      "usage": "hub-static"
+    },
+    {
+      "id": "inn-aveugle-reliquaire-v1",
+      "file": "/scenes/inn/inn-aveugle-reliquaire-v1.webp",
+      "usage": "direct-dialogue"
+    },
+    {
+      "id": "inn-tableau-contrats-v2",
+      "file": "/scenes/inn/inn-tableau-contrats-v2.webp",
+      "usage": "hub-static"
+    },
+    {
+      "id": "inn-contrats-signature-v2",
+      "file": "/scenes/inn/inn-contrats-signature-v2.webp",
+      "usage": "hub-event"
+    },
+    {
+      "id": "inn-forge-cendre-forgeron-v2",
+      "file": "/scenes/inn/inn-forge-cendre-forgeron-v2.webp",
+      "usage": "hub-static"
+    },
+    {
+      "id": "inn-entree-retour-v1",
+      "file": "/scenes/inn/inn-entree-retour-v1.webp",
+      "usage": "hub-event"
+    },
+    {
+      "id": "inn-preparation-depart-v1",
+      "file": "/scenes/inn/inn-preparation-depart-v1.webp",
+      "usage": "hub-static"
+    }
+  ]
+}

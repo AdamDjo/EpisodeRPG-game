@@ -208,3 +208,195 @@ Décisions validées :
 Le compromis de mystère total est volontaire : l'état actuel du personnage reste lisible, mais le
 jeu ne prédit pas les dangers futurs. Les playtests v0.2.1 décideront si des avertissements doivent
 revenir. Coordination documentaire et backlog : #244 ; EPICs #250, #251, #252 et #253.
+
+---
+
+## 2026-08-09 — Direction artistique des scènes : continuité « Cendre et Sel »
+
+La bibliothèque de scènes conserve la direction artistique déjà portée par L'Aveugle, les
+vocations et l'UI : réalisme illustré cinématique, matières usées, humanité désertique, ombres
+chaudes et lumière ambrée. La génération d'un extérieur témoin de Velkhar a validé l'extension de
+cette identité au monde ouvert.
+
+Décisions validées :
+
+- ne pas remplacer les assets existants par une nouvelle famille graphique ;
+- utiliser la Cendre dorée comme lumière surnaturelle et élément narratif immédiatement visible ;
+- représenter Velkhar comme une mégapole de pierre pâle bâtie sur des ruines archontiques, jamais
+  comme un château gothique européen isolé ;
+- conserver des personnages humains, équipés pour le désert, et des environnements habités ;
+- lorsqu'un personnage principal apparaît, il représente le joueur : visage caché ou peu défini,
+  équipement d'aventurier fonctionnel et usé (capuche, cuir, arme, sacoche, ceinture et
+  provisions), sans lui imposer une identité ou une classe visuelle fixe ;
+- traiter par défaut chaque image comme un plateau de lieu réutilisable par la narration IA :
+  décrire l'architecture, les matières, la lumière et l'ambiance sans imposer la présence du joueur
+  ni une action précise qui pourrait contredire la scène générée ; le joueur n'apparaît que lorsque
+  sa présence est indispensable à la compréhension du lieu ou de l'échelle ;
+- augmenter le mystère, la monumentalité et l'émotion sans sacrifier la simplicité de lecture sur
+  mobile ;
+- varier systématiquement entre les scènes la caméra, la densité spatiale, la météo ou l'heure,
+  l'action focale et la balance colorée ; éviter notamment la répétition « joueur à gauche +
+  panorama monumental à droite » ;
+- réserver les zones les plus sombres aux cadres et aux emplacements d'interface, sans écraser les
+  sujets ni la Cendre.
+
+---
+
+## 2026-08-09 — Bibliothèque visuelle : plateaux de run neutres
+
+La cible initiale de 45 à 60 images supposait davantage de variantes narratives. Elle est ramenée à
+30 à 38 assets : 6 à 8 pour l'Auberge, 8 à 10 pour les voyages et 16 à 20 pour les donjons.
+
+L'Auberge conserve ses scènes fixes et incarnées. Hors du hub, le décor générique montre d'abord le
+lieu, sa lumière et ses matières ; joueur, monstre et action sont absents par défaut pour ne pas
+contredire la narration IA. Une image de traversée, de camp, d'arrivée ou de combat reste possible,
+mais uniquement comme variante événementielle sélectionnée par un identifiant structuré.
+
+Les vues élevées, obliques ou verticales deviennent un motif récurrent — sans être exclusif — pour
+mettre en valeur la géométrie des lieux et leur lecture immédiate sur mobile. Chaque famille conserve
+une manifestation visible de la Cendre dorée, utilisée comme force surnaturelle structurante plutôt
+que comme simple éclairage décoratif.
+
+---
+
+## 2026-08-09 — Facture visuelle : animation adulte et bande dessinée peinte
+
+Une comparaison contrôlée sur le même reliquaire a opposé réalisme cinématique, animation adulte et
+gravure de conte sombre. La facture principale retenue est l'animation adulte et bande dessinée
+peinte : aplats d'ombre dessinés, volumes anguleux, contours expressifs sélectifs, texture sèche et
+composition lisible sur mobile.
+
+La gravure dense ne devient pas le rendu général du monde. Elle peut subsister comme registre
+secondaire des Souvenirs, archives ou visions. Un second prototype sur L'Aveugle a confirmé que les
+visages, les mains, l'or matériel et les petites couleurs humaines restent lisibles sans perdre la
+dominante Noir, Sel et Cendre dorée.
+
+---
+
+## 2026-08-09 — Présence du joueur : caméra subjective, jamais d'avatar imposé
+
+Le personnage joueur n'est jamais représenté dans les illustrations : ni corps, ni silhouette, ni
+main, ni ombre, ni reflet. Cette règle protège la projection dans un protagoniste créé librement et
+évite qu'une image pré-générée contredise la narration IA.
+
+Lorsqu'un PNJ s'adresse au joueur, la caméra adopte son point de vue. Le prototype de L'Aveugle le
+cadre seul, face à l'écran, les yeux aveugles maintenus dans l'ombre et les mains proches du bord de
+table. Les silhouettes humaines non-joueur restent possibles pour donner l'échelle d'un lieu, sans
+jamais être interprétables comme le protagoniste.
+
+---
+
+## 2026-08-09 — Direction artistique validée : Sel Taillé
+
+Après comparaison de quatre factures sur la même scène et sur une même Game Session, la direction
+retenue est **Sel Taillé** : animation adulte peinte pour l'émotion et les matières, structurée par
+des masses noires découpées pour les ombres, l'architecture et l'interface. L'identité demeure
+Light / Dark / Gold : lumière blanche de Sel, masse noire taillée, or matériel et Cendre dorée qui
+remonte contre la gravité.
+
+La version purement peinte manquait de signature propriétaire ; la découpe graphique pure était trop
+agressive. Sel Taillé conserve environ 70 % de peinture et 30 % de découpe, avec trames fortement
+réduites. Le pixel art et la gravure narrative restent des comparaisons archivées, pas la DA du jeu.
+
+La même grammaire est validée sur desktop et mobile. Desktop conserve les choix en ligne et le HUD
+complet ; mobile recadre l'illustration, empile les choix, garantit des cibles tactiles de 44 px et ne
+dépend jamais d'un hover. L'effet de fissure dorée est un SVG prédessiné animé par transition, pas
+un effet procédural généré à chaque interaction.
+
+---
+
+## 2026-08-09 — Révision DA : animation adulte peinte retenue
+
+Après une dernière comparaison en contexte de jeu, la piste **animation adulte peinte** est retenue
+à la place de Sel Taillé pour sa force émotionnelle, sa lisibilité et la qualité de ses matières.
+« Arcane » demeure uniquement le nom informel du repère comparatif : la production ne doit imiter
+aucune licence existante. L'identité propre reste fondée sur Light / Dark / Gold, la distinction
+entre or matériel et Cendre lumineuse, les masses archontiques, le héros toujours hors champ et la
+vue subjective face aux PNJ. Sel Taillé est archivé sans être supprimé. La déclinaison mobile de la
+facture finale reste à valider.
+
+---
+
+## 2026-08-09 — Direction finale : Encre de Sel
+
+La direction officielle devient **Encre de Sel**, une bande dessinée adulte dessinée et non réaliste.
+La palette est désormais strictement limitée au Noir, au Sel blanc et à l'Or, HUD compris. La
+référence maîtresse de L'Aveugle fixe les contours, les aplats anguleux, le nombre réduit de valeurs
+et la texture posée à la main. Les pistes Sel Taillé et animation adulte peinte restent archivées.
+
+La Game Session réserve une hauteur naturelle à deux à cinq lignes de narration, emploie des choix
+de 72 px minimum avec un texte de 20 à 24 px et préfère le défilement à toute réduction forcée. Sac,
+Chronique et Personnage deviennent trois boutons icônes. Les images de run conservent le protagoniste
+hors champ et privilégient quelques masses graphiques lisibles plutôt que le détail architectural.
+
+---
+
+## 2026-08-09 — Game Session : lecteur narratif extensible
+
+La Game Session abandonne les zones de texte à hauteur fixe. Sur desktop, l'illustration reste dans
+une colonne d'environ 58 % et le lecteur narratif occupe les 42 % restants avec son propre
+défilement. Il accepte neuf lignes ou davantage sans réduire la police. Les choix sont empilés,
+mesurent au moins 88 px et grandissent naturellement jusqu'à trois lignes ou davantage. Sur mobile,
+image, narration, choix et action libre suivent le flux vertical de la page.
+
+Les choix adoptent des cartouches de bande dessinée à contour d'encre épais, angle coupé et ombre
+dure, plutôt que des cadres fantasy fins. Le HUD conserve ses couleurs sémantiques historiques ; la
+trichromie Noir / Sel / Or reste stricte pour les illustrations. Sac, Chronique et Personnage restent
+des boutons icônes.
+
+---
+
+## 2026-08-09 — Game Session : hiérarchie de lecture recalibrée
+
+La composition desktop en deux colonnes est conservée, mais sa hiérarchie interne est resserrée.
+Le corps narratif devient prioritaire en 24 à 26 px avec un interlignage confortable. Les choix
+courts occupent 64 à 72 px et passent en hauteur automatique lorsque leur texte demande davantage
+de lignes. Leur libellé reste à 19 ou 20 px : aucune réduction de police ne compense un contenu long.
+
+Les numéros ne sont plus des éléments décoratifs géants. Ils mesurent 32 à 36 px et sont contenus
+dans un onglet doré de 44 à 48 px, séparé du texte. Les cartouches conservent l'angle coupé et la
+grammaire dessinée d'Encre de Sel, mais emploient un contour de 2 à 3 px et une ombre dure de 3 px
+pour éviter l'effet de grande plaque. Le défilement du lecteur sur desktop et le flux vertical de la
+page sur mobile restent inchangés.
+
+---
+
+## 2026-08-09 — Identité du joueur : survivants mortels et Héritage
+
+Chaque personnage est désormais défini comme un survivant déjà compétent, mais ordinaire et
+mortel. Atteindre l'Auberge prouve qu'il sait combattre, fuir, camper et rationner ses ressources ;
+la vocation détermine sa manière d'agir. Il n'est ni un élu ni obligatoirement un chasseur de
+contrats. Le contrat structure et finance son expédition sans remplacer sa motivation personnelle.
+
+Le joueur incarne l'**Héritage**, c'est-à-dire la continuité entre plusieurs personnages distincts.
+Après une mort, un successeur trouve ou reçoit l'artefact transmis et le rapporte au _Doigt-Cassé_.
+L'Aveugle reconnaît cet objet, les Souvenirs et les traces antérieures, jamais une âme réincarnée ni
+le même visage. Le successeur n'hérite pas automatiquement de la réputation, des relations ou du
+corps du défunt.
+
+La symbolique temporelle est canonisée : le Sel blanc conserve le Passé, la Cendre dorée manifeste
+le Présent encore modifiable, et le Noir figure le Futur inconnu ainsi que la Mort qui ferme les
+possibilités. Formule de référence : **« Le Sel se souvient. La Cendre choisit. Le Noir attend. »**
+
+Exception conservée : une transformation en Calciné corrompt l'artefact et empêche sa transmission.
+Le successeur arrive alors pour sa propre raison ; l'Héritage continue par les Souvenirs, la
+connaissance et les traces déjà laissées dans le monde.
+
+---
+
+## 2026-08-09 — Game Session finale et coque universelle
+
+Le master de la Game Session **Encre de Sel** est validé. Il conserve l'illustration dessinée,
+brutale et lisible, le lecteur narratif extensible à droite et les choix sous forme d'étiquettes
+physiques, mais reprend le footer antérieur plus calme : bandeau noir continu, petites icônes,
+couleurs sémantiques, valeurs, jauges fines et séparateurs. Le gore raconte désormais la scène et
+ses conséquences sans rendre le HUD structurel inutilement macabre.
+
+Cette composition devient la coque unique du gameplay. L'Auberge — L'Aveugle, Comptoir, Contrats
+et Forge — utilise le même header, la même image à gauche, le même lecteur et les mêmes choix à
+droite, ainsi que le même footer que le voyage, la quête, le donjon et le retour. Le contenu et le
+degré de violence changent avec la situation, pas la structure de navigation. Le combat demeure la
+seule transformation majeure.
+
+Les anciennes explorations de direction artistique et l'ancienne bibliothèque de scènes sont
+archivées de manière récupérable avant la reprise des lots dans cette direction finale.

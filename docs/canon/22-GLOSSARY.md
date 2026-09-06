@@ -30,9 +30,14 @@ Définition courte (1-2 phrases).
 ## A
 
 **Aveugle (L')** _🌍 Lore_
-Aubergiste mystérieux du hub permanent — **pilier unique** d'entrée dans chaque run. Voix chaude, ironique, tutoie le joueur, parle en proverbes désertiques. Mémoire vivante : reconnaît les anciens personnages et l'événement mondial actif. Échange des Souvenirs (monnaie) contre du lore.
+Aubergiste mystérieux du hub permanent — **pilier unique** d'entrée dans chaque run. Voix chaude,
+ironique, tutoie le joueur, parle en proverbes désertiques. Mémoire vivante : distingue le retour
+d'un personnage de l'arrivée d'un successeur et connaît l'événement mondial actif. Échange des
+Souvenirs (monnaie) contre du lore.
 → [01-PILLARS §5](01-PILLARS.md), [07-CHARACTER-CREATION §5-§7](07-CHARACTER-CREATION.md), [14-META-WORLD §5](14-META-WORLD.md), [15-GAME-MASTER §1](15-GAME-MASTER.md)
-⚠️ Pas un PNJ "ennemi" ou "allié". C'est l'**interface du monde** entre les runs.
+⚠️ Il reconnaît un personnage revenu vivant. Face à un successeur, il reconnaît l'artefact et les
+Souvenirs du défunt, jamais la même âme ou le même visage. Ce n'est ni un PNJ "ennemi" ni un
+"allié" : c'est l'**interface du monde** entre les runs.
 
 **Anonyme** _💼 Produit_
 Tier d'utilisateur sans compte créé. Identifié par cookie HTTPOnly `grimoire_session` (90j). Cap = **30 requêtes IA total** sur le cycle de vie du cookie. Données stockées client-side (cookie chiffré ~4KB) + Chronique upload serveur permanent.
@@ -83,6 +88,12 @@ Récit littéraire de 800-1200 mots généré par l'IA à la fin de chaque run (
 Cookie HTTPOnly de 90 jours qui identifie un joueur anonyme. Rattaché à `account_id` lors de la création de compte (les datas anonymes deviennent celles du compte).
 → [20-ARCHITECTURE §5](20-ARCHITECTURE.md)
 
+**Contrat** _⚙️ Mécanique + 🌍 Lore_
+Quête principale qui donne au run un objectif, une destination et des conditions de réussite. C'est
+un moyen de financer ou servir le projet du personnage, jamais un métier imposé : tous les
+personnages ne sont pas des chasseurs de primes.
+→ [23-RUN-STRUCTURE §2](23-RUN-STRUCTURE.md)
+
 ## D
 
 **D20** _⚙️ Mécanique_
@@ -131,6 +142,14 @@ Tier d'utilisateur avec compte créé (email + magic link). Cap = **150 requête
 L'Auberge de L'Aveugle — point d'entrée unique de chaque run. Pas de menu, pas de lobby : quatre
 destinations fictionnelles restent accessibles, Comptoir, L'Aveugle, Contrats et Forge.
 → [07-CHARACTER-CREATION](07-CHARACTER-CREATION.md), [23-RUN-STRUCTURE §1](23-RUN-STRUCTURE.md)
+
+**Héritage** _⚙️ Mécanique + 🌍 Lore_
+Continuité appartenant au joueur à travers plusieurs personnages mortels : artefact transmis,
+Souvenirs nommés, connaissance, accès débloqués et traces locales. Ce n'est ni une résurrection, ni
+une âme réincarnée, ni une réputation intégralement transférée.
+→ [07-CHARACTER-CREATION §7](07-CHARACTER-CREATION.md), [14-META-WORLD §0](14-META-WORLD.md)
+⚠️ L'artefact n'est transmis que s'il reste récupérable. La fin `calcined` le corrompt, mais les
+autres composantes de l'Héritage persistent.
 
 ## L
 
@@ -278,6 +297,14 @@ Monnaie méta utilisée chez L'Aveugle pour acheter du lore généré. Gagnés �
 Objets narratifs permanents (≠ monnaie). Max 3/run, déclenchés par moments forts (acte héroïque, trahison, perte, choix moral). Titre + corps 50 tokens. Persistent inter-runs et rappelés par L'Aveugle. Cap : **20 max gratuit / illimité Premium**.
 → [14-META-WORLD §2](14-META-WORLD.md), [16-MEMORY §6](16-MEMORY.md), [19-MONETIZATION §5.2](19-MONETIZATION.md)
 ⚠️ Table de désambiguïsation Souvenirs vs Souvenirs nommés dans [19-MONETIZATION §5.2](19-MONETIZATION.md).
+
+**Successeur** _🌍 Lore + ⚙️ Mécanique_
+Nouveau personnage distinct qui, après la mort du précédent, trouve ou reçoit son artefact
+d'héritage et le porte jusqu'à l'Auberge. Il conserve sa propre identité et commence sans la
+réputation complète, les relations ou le corps du défunt.
+→ [07-CHARACTER-CREATION §5-§7](07-CHARACTER-CREATION.md), [14-META-WORLD §0](14-META-WORLD.md)
+⚠️ Après une fin `calcined`, il arrive sans artefact transmis et pour une motivation qui lui est
+propre.
 
 **Stripe Checkout / Customer Portal** _🤖 IA / Tech + 💼 Produit_
 Pages hostées Stripe pour le paiement et la gestion d'abonnement. Aucune carte ne touche le backend de GRIMOIRE (sécurité PCI déléguée).

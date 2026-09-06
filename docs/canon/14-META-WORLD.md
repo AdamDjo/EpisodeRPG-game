@@ -22,6 +22,26 @@ GRIMOIRE n'est pas un MMO. Pas de saisons, pas de raids, pas de classement publi
 
 **Règle absolue** : aucune persistance partagée entre joueurs en V1 (pas de "tu vois ce que les autres ont fait"). Trop complexe, risque cohérence, économie incertaine. **Reporté V2+** comme option premium.
 
+### Joueur, personnage et Héritage
+
+Le **personnage** est la vie mortelle du run courant. Le **joueur** possède une chaîne de personnages
+distincts appelée **Héritage**. Après une mort, le successeur ne ressuscite personne et ne récupère
+pas automatiquement l'identité sociale du défunt.
+
+La continuité inter-runs passe uniquement par des vecteurs explicites :
+
+- l'artefact d'héritage transmis lorsqu'il reste récupérable ;
+- les Souvenirs nommés ;
+- la connaissance et les accès débloqués ;
+- les traces locales laissées dans le monde.
+
+L'Aveugle est le témoin principal de cette continuité. Il reconnaît l'objet et les traces du passé,
+pas une âme immortelle. Les autres PNJ ne connaissent le successeur que si une trace locale ou un
+Souvenir justifie leur réaction ; sinon, il demeure un inconnu.
+
+La fin `calcined` est l'exception matérielle : l'artefact corrompu n'est pas transmis. L'Héritage
+continue néanmoins par les Souvenirs, la connaissance et les conséquences déjà persistées.
+
 ---
 
 ## §1 — Les 3 niveaux d'évolution méta (vue d'ensemble)
@@ -210,7 +230,9 @@ L'Aveugle peut **vendre du lore généré** contre un Souvenir donné en paiemen
 
 ### Définition
 
-Des **traces persistantes par joueur** sur certains PNJ, lieux et factions. Si le perso précédent a marqué un endroit, le perso N+1 héritera de cette réaction locale.
+Des **traces persistantes par joueur** sur certains PNJ, lieux et factions. Si le personnage
+précédent a marqué un endroit, le personnage N+1 en rencontre les conséquences, sans hériter
+automatiquement de sa réputation ni être confondu avec lui.
 
 ### Périmètre V1 (volontairement réduit)
 

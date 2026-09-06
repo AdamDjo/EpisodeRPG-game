@@ -31,10 +31,13 @@ ticket soit livré se lit sur GitHub.
 - **Le mode courant vient du serveur, jamais déduit du texte de scène.** Corollaire frontend de la
   souveraineté backend : le client dessine, il n'arbitre pas. En v0.2.1, ce mode déclenche surtout
   la transformation combat ; il ne sélectionne pas quatre applications visuellement séparées.
-- **Une seule coque narrative hors combat.** L'image, la voix et les composants contextuels changent,
-  mais la continuité Auberge → voyage → quête/donjon → retour ne casse jamais.
+- **Une seule coque narrative hors combat.** L'Auberge et le run partagent exactement la même
+  composition : header persistant, illustration à gauche, narration et choix à droite, HUD en
+  footer. L'image, la voix et les composants contextuels changent, mais la continuité Auberge →
+  voyage → quête/donjon → retour ne casse jamais.
 - **L'Auberge est un hub de scènes, pas un tableau.** Comptoir, L'Aveugle, Contrats et Forge restent
-  accessibles comme destinations persistantes dans la fiction.
+  accessibles comme destinations persistantes dans la fiction et s'affichent dans la coque commune,
+  en vue subjective lorsque le joueur parle à un PNJ.
 - **Le donjon ne révèle pas son moteur en v0.2.1.** Aucun type de salle, indice, icône, carte,
   palier, profondeur ou estimation de retour n'est rendu. Le HUD conserve uniquement l'objectif
   principal repliable, les jauges et « Faire demi-tour » hors combat.
@@ -64,9 +67,21 @@ ticket soit livré se lit sur GitHub.
   final. Détail `docs/tech/SECURITY.md`. #162
 - **L'inventaire est structuré selon les quatre catégories canon**, pas selon une commodité
   d'affichage. #183 #186
-- **Les scènes utilisent une bibliothèque pré-générée de 45 à 60 images.** Deux ou trois variantes
-  par famille sont réutilisables ; aucune génération runtime en v0.2.1 et aucun sens mécanique ne
-  dépend de l'image seule.
+- **Les scènes utilisent une bibliothèque pré-générée de 30 à 38 images.** Les scènes fixes de
+  l'Auberge peuvent montrer leurs interactions récurrentes ; pendant un run, les images décrivent
+  d'abord un lieu réutilisable. Le personnage joueur n'est jamais représenté ; monstres et actions
+  imposées sont absents des plateaux génériques. Aucune génération
+  runtime en v0.2.1 et aucun sens mécanique ne dépend de l'image seule.
+- **La direction artistique frontend est Encre de Sel.** Contours d'encre visibles, grandes masses,
+  trois à quatre valeurs franches et palette stricte Noir / Sel / Or pour les illustrations. Le HUD
+  conserve les couleurs sémantiques de Sang, Souffle, Faim, Soif et Calamine. Sur desktop,
+  l'illustration reste à gauche et le lecteur narratif défile à droite ; les choix empilés grandissent
+  avec leur texte sans devenir des panneaux surdimensionnés : 64 à 72 px pour un choix court, puis
+  hauteur automatique. La narration garde une taille de lecture prioritaire de 24 à 26 px sur
+  desktop. Sur mobile, image, narration et choix suivent le flux naturel de la page. Sac, Chronique
+  et Personnage sont des boutons icônes de 44 px minimum. Aucun comportement essentiel ne dépend du
+  hover. Le footer desktop reste un bandeau noir continu et lisible avec petites icônes, valeurs,
+  jauges fines et séparateurs ; il n'adopte pas la surcharge gore de l'illustration et des choix.
 - **Tailwind pour le responsive, jamais un hook JS.**
 
 ## Dette et suivis connus

@@ -16,6 +16,20 @@ La création de personnage **n'est pas un écran de stats**. C'est le **prologue
 - 🟢 **Liberté totale pour les RP** : qui veut écrire son propre concept peut, l'IA l'intègre
 - 🟢 **C'est déjà du jeu** : la première boucle d'action commence ici, pas après
 
+### Le socle commun à tous les personnages
+
+Le personnage n'arrive pas comme un novice. Survivre jusqu'au _Doigt-Cassé_ signifie qu'il sait
+déjà se battre, fuir, camper, reconnaître un danger immédiat et rationner eau et vivres. La vocation
+ne décide pas s'il est compétent ; elle décide **comment** cette compétence s'exprime.
+
+Il reste pourtant une personne ordinaire et mortelle : aucun statut d'élu, aucune résurrection et
+aucune protection du récit. Il n'est pas obligatoirement chasseur de contrats. Les contrats donnent
+un objectif, des ressources et une raison praticable de quitter l'Auberge ; la motivation intime du
+personnage vient de sa vocation, de son concept libre et de ses actes.
+
+Lors de son premier passage, le personnage est inconnu. Sa réputation se construit pendant son run
+et ne devient jamais automatiquement celle de son successeur.
+
 ---
 
 ## 1. L'auberge de L'Aveugle
@@ -216,11 +230,17 @@ Avant que le joueur quitte l'auberge, **L'Aveugle offre 1 Souvenir gratuit** :
 
 ### Au retour du joueur
 
-L'Aveugle **évoque les Souvenirs nommés** des runs précédents :
+Si le personnage revient vivant, L'Aveugle peut le reconnaître directement et **évoquer les
+Souvenirs nommés** de ses passages précédents :
 
 > _« Ah. Toi. Celui qui a épargné l'Inquisiteur Vane. J'ai entendu les rumeurs. Tu as bien fait, ou pas — le temps le dira. »_
 
-🟢 _L'IA pioche dans la table des Souvenirs nommés du joueur (voir `14-META-WORLD`) et en cite 1-2 en intro. Création de continuité instantanée._
+Face à un successeur, L'Aveugle ne prétend jamais reconnaître la même personne. Il reconnaît
+l'artefact transmis, puis rattache un ou deux Souvenirs au voyageur mort :
+
+> _« Je ne connais pas ton visage. Mais cet objet, lui, est déjà mort une fois. »_
+
+🟢 _L'IA pioche dans la table des Souvenirs nommés du joueur (voir `14-META-WORLD`) et en cite 1-2 en intro, en attribuant clairement les actes au bon personnage._
 
 ### La création raccourcie
 
@@ -274,9 +294,11 @@ d'action** (voir `09-ACTION-LOOP`) reste la même pendant le voyage, la quête e
 
 ---
 
-## 7. Cas particulier — Mort et ressuscitation
+## 7. Mort et succession
 
-Quand le joueur meurt (combat, Calamine, survie), une **transition narrative** se joue avant le retour à l'auberge.
+Quand le personnage meurt, une **transition narrative** se joue avant le retour à l'Auberge. Une
+mort ordinaire peut transmettre l'artefact ; la transformation en Calciné reste l'exception sans
+artefact, car elle le corrompt avec le corps.
 
 ### Le récit de la mort
 
@@ -292,7 +314,18 @@ L'Aveugle accueille **le successeur** comme à l'Étape 1, mais avec **une varia
 
 → La **création raccourcie** s'enchaîne (§5).
 
-🟢 _La mort n'est pas un game over. C'est une transition narrative. Le joueur ne perd pas son histoire — il en commence une nouvelle, héritière._
+Le successeur est une nouvelle personne. Il n'hérite ni du corps, ni du nom, ni de la réputation
+complète, ni des relations du mort. Après une mort ordinaire, il a trouvé, reçu ou arraché l'artefact
+d'héritage, puis choisi de le porter jusqu'au _Doigt-Cassé_. Ce chemin précis peut rester
+fragmentaire afin que le concept libre du nouveau personnage conserve sa place.
+
+Après une transformation en Calciné, aucun artefact n'arrive à l'Auberge. Le successeur y vient pour
+sa propre raison ; L'Aveugle relie son arrivée aux Souvenirs, à la connaissance et aux traces du
+joueur, sans inventer une transmission d'objet.
+
+🟢 _La mort n'est pas une résurrection. Le personnage disparaît ; le joueur continue par son
+Héritage : l'artefact lorsqu'il est récupérable, les Souvenirs, la connaissance et les traces
+laissées dans le monde._
 
 ---
 

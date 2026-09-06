@@ -57,6 +57,23 @@ Le sable qui recouvre tout Velkhar n'est pas du sable ordinaire. C'est de la **C
 
 🟢 _Le joueur comprend dès la première scène : le sable est doré, c'est étrange, c'est beau, et c'est dangereux._
 
+### Le temps de Velkhar
+
+Trois matières donnent au temps une forme perceptible. Cette lecture est canonique, mais elle ne
+permet pas de prédire mécaniquement l'avenir : elle structure les rites, les images et la manière
+dont les habitants comprennent le monde.
+
+| Matière          | Temps             | Sens canonique                                                                                                                    |
+| ---------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Sel blanc**    | **Passé**         | Il conserve les os, les ruines, les noms et les traces de ce qui a déjà eu lieu. Le blanc n'est jamais la pureté.                 |
+| **Cendre dorée** | **Présent**       | Elle marque ce qui agit, contamine et peut encore être choisi. Son mouvement impossible manifeste une possibilité encore ouverte. |
+| **Noir**         | **Futur et Mort** | Il figure l'inconnu et le moment où les possibilités se ferment. Il n'annonce jamais précisément ce qui va arriver.               |
+
+> _Le Sel se souvient. La Cendre choisit. Le Noir attend._
+
+L'or matériel reste un métal humain sans pouvoir temporel. Un objet doré ne devient lié au Présent
+que lorsque de la Cendre vivante l'anime.
+
 ---
 
 ## 3. Les artefacts — la seule source de pouvoir
