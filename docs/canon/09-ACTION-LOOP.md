@@ -130,6 +130,32 @@ Les choix proposés sont **générés à chaque tour** par l'IA selon la scène.
 | **Adaptés à la vocation**                            | Un Tisse-Verbe voit "Tu sens un artefact dans cette ruine" qu'un Marcheur ne voit pas |
 | **Adaptés aux conditions**                           | Si le perso a la fièvre, "Se reposer ici" peut apparaître en priorité                 |
 | **Adaptés à la phase narrative**                     | En climax (acte 3 invisible, cf. §6), pas de choix "explorer un bâtiment au hasard"   |
+| **L'option vorace** _(#281)_                         | Une option qui offre un gain clair **et** annonce son prix — voir ci-dessous          |
+
+### L'option vorace _(ajout 2026-08-15, #281)_
+
+Parmi les 3-4 choix, **au moins un tour sur trois** propose une **option vorace** : un choix dont le
+bénéfice est explicite et immédiat, et dont le coût est **annoncé sans être chiffré**.
+
+- Le gain est **lisible** : de l'eau, un raccourci, une information, un artefact.
+- Le prix est **signalé mais flou** : un détail de la narration dit ce qu'on risque, jamais combien.
+- Le joueur doit pouvoir se dire _« j'y vais quand même »_ — et se souvenir qu'il l'a choisi.
+
+**Ce que ce n'est pas** :
+
+- ❌ Un piège aveugle. Un coût jamais annoncé est du RNG punitif, pas un dilemme (`01-PILLARS §9` :
+  la mort doit rester imputable au joueur).
+- ❌ Un choix optimal déguisé. Si le bon calcul est toujours « ne pas y aller », l'option est morte.
+- ❌ Un label qui chiffre le coût (_« -15 PV »_) — le label reste narratif, le moteur calcule.
+
+**Exemple** :
+
+> _Le puits est plein. L'eau est claire. Deux corps flottent au fond, gonflés, les mains encore
+> attachées au seau._
+
+1. 💧 Boire quand même, longuement _(option vorace : soif comblée, et l'eau a servi à autre chose)_
+2. 🪣 Remplir une gourde, ne pas boire ici _(pragmatique)_
+3. 🚶 Repartir, la gorge sèche _(prudente)_
 
 ### Exemple
 
@@ -141,6 +167,51 @@ Les choix proposés sont **générés à chaque tour** par l'IA selon la scène.
 2. 🪙 Aller au bar, commander un verre, attendre _(option pragmatique)_
 3. 👁️ Observer la salle, chercher une sortie discrète _(option RP/SOUFFLE)_
 4. ✍️ _Autre action_
+
+---
+
+## 3bis. Le cadavre-présage _(ajout 2026-08-15, #281)_
+
+> **Le joueur doit voir la conséquence avant la cause.**
+
+C'est le mécanisme qui transforme la lecture en anticipation : avant qu'une menace n'arrive, Velkhar
+en montre le **résultat sur quelqu'un d'autre**. Le joueur qui lit bien devine ; celui qui scanne
+subit. Dans les deux cas, la surprise est **méritée** — jamais gratuite.
+
+### Le principe
+
+Un lieu dangereux ne s'annonce pas par une phrase d'avertissement, mais par un **corps, un objet ou
+une trace** qui raconte ce qui est arrivé au précédent :
+
+| Le présage montre…                                | Le joueur peut en déduire…              |
+| ------------------------------------------------- | --------------------------------------- |
+| Des marques de dents sur un os propre             | Ce qui vit ici mange, et mange souvent  |
+| Une gourde pleine à côté d'un mort desséché       | Ce n'est pas la soif qui l'a tué        |
+| Des bottes triées par pointure devant un Calciné  | Il y a eu beaucoup de passants ici      |
+| Une cloche votive décrochée, cordon coupé         | Quelqu'un a voulu empêcher l'alerte     |
+| Un masque votif encore chaud, sans visage dessous | Ce qui portait ce masque est parti seul |
+
+### Les règles
+
+- **Un présage par lieu dangereux, pas par tour.** L'accumulation banalise le signal.
+- **Le présage précède toujours la menace** — jamais dans le même tour que sa réalisation.
+- **Il tient la promesse** : ce qui est annoncé arrive dans les **3 tours**, ou est **démenti de
+  façon signifiante** (le monstre était déjà mort, quelqu'un l'a tué avant toi). Un présage sans
+  suite entraîne le joueur à ne plus lire — c'est l'anti-objectif.
+- **Il ne dit jamais la règle**, il montre son effet. Pas de _« attention, cette eau est
+  empoisonnée »_ : un mort à côté du puits, gourde pleine.
+- Le tour qui porte un présage prend le **mood `dread`** (cf. `15-GAME-MASTER §4.1`), pas
+  `dangerous` : la menace n'est pas encore là.
+
+### Le contrat moteur
+
+L'IA déclare son présage via le champ optionnel `foreshadow` (cf. `15-GAME-MASTER §4.1`) :
+l'indice est **déjà dans la narration**, le champ le rend seulement lisible par le backend, qui le
+persiste et le réinjecte en contexte tant qu'il n'est pas résolu (3 tours max). Le joueur ne voit
+jamais le champ `threat` — seulement l'indice, dans la prose.
+
+🟢 _Lien pilier : c'est la traduction mécanique de « le joueur doit chercher à savoir ce qui va lui
+arriver » (`01-PILLARS §4`, Trucs à viser)._
 
 ---
 

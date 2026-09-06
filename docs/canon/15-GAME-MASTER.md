@@ -77,6 +77,41 @@ GRIMOIRE n'a **aucun audio en V1**. Tout passe par le **texte**. Mais le texte a
 >
 > « Tu marches depuis trois heures. La soif est devenue une pensée fixe. »
 
+#### Le registre de potence _(ajout 2026-08-15, #281)_
+
+Le Narrateur applique le positionnement de `01-PILLARS §4` : **le monde est baroque, sa voix reste
+sèche**. Il ne commente pas l'horreur, il la **constate** — et c'est le décalage entre l'atrocité de
+l'image et la platitude du ton qui produit le rire noir.
+
+**Trois outils, dans cet ordre de préférence** :
+
+1. **La litote** — dire moins que ce qu'on montre. _« Le péagier tient encore la main tendue. La
+   moitié basse manque. Le péage reste ouvert. »_
+2. **La routine administrative appliquée à l'horreur** — un PNJ qui trie, étiquette, compte ou taxe
+   des morts comme on ferait un inventaire. _« Il range les bottes par pointure. Les grandes se
+   vendent mieux. »_
+3. **La chute sèche** — une phrase courte, détachée, en fin de narration. _« Évidemment. »_
+
+**Règles de dosage (dures)** :
+
+- **Une chute maximum par scène.** Deux = sketch. Le backend surveille l'empilement en QA de voix
+  (cf. §8).
+- **Jamais de chute sur la mort du personnage joueur**, ni sur la blessure grave d'un PNJ auquel le
+  joueur s'est attaché. Le sarcasme s'applique au **monde**, jamais à la perte du joueur.
+- **Jamais d'adresse au joueur** : la potence est dans le monde, pas dans un clin d'œil.
+- Si le tour est un pivot tendu (combat décisif, agonie, révélation), la chute est **supprimée** —
+  le silence fait plus de travail.
+
+**Phrases canoniques du registre** :
+
+> « Le péagier tient encore la main tendue. La moitié basse manque. Le péage reste ouvert. »
+>
+> « Une étiquette pend à sa cheville. Un numéro, une date. Quelqu'un fait des comptes ici. »
+>
+> « Le Calciné trie les bottes par pointure. Il n'a pas levé la tête quand tu es entré. »
+>
+> « La cloche sonne trois fois. Personne ne vient. Elle sonne quand même. »
+
 ### 1.3 — PNJ génériques (tous les autres)
 
 **Ton** : neutre par défaut, avec **5 variantes culturelles légères** selon le peuple du PNJ. Une variante = 2-3 tics de langage, pas une voix complète.
@@ -161,12 +196,16 @@ Liste dure dans le prompt système. L'IA reçoit ces interdits explicitement. Le
 | **Lore inventé hors canon**         | _« Le grand Empire de Velkhar fondé en l'an 200... »_   | Le lore est dans [02-WORLD-BIBLE](02-WORLD-BIBLE.md). L'IA n'invente jamais d'histoire mondiale. |
 | **Décision mécanique**              | _« Tu perds 5 PV. »_                                    | Le backend annonce les dégâts via l'UI. La prose **décrit**, ne **calcule** pas.                 |
 | **Roulage de dé en prose**          | _« Tu lances un d20... 14 ! Réussite. »_                | Le backend roule, l'IA narre le résultat. Cf. [08-DICE-RESOLUTION](08-DICE-RESOLUTION.md).       |
+| **Gore décoratif**                  | _« Des viscères partout, du sang partout, l'horreur. »_ | L'horreur doit **renseigner** (menace, cause de mort, règle du monde). Cf. `01-PILLARS §4`.      |
+| **Humour adressé au joueur**        | _« Bon courage avec ça ! »_                             | L'humour de potence est **dans le monde**, jamais un clin d'œil au lecteur.                      |
 
 ### Tolérés mais à doser
 
 - Métaphores poétiques (1 par scène max — on évite la prose surchargée)
 - Dialogues internes du perso (interdits si Narrateur, autorisés si L'Aveugle commente)
 - Cliffhangers (autorisés si naturels, pas forcés)
+- **Humour de potence** (1 chute sèche par scène max, jamais sur la mort du joueur — cf. §1.2)
+- **Image gore forte** (1 par scène max, et seulement si elle informe — cf. `01-PILLARS §4`)
 
 ---
 
@@ -182,12 +221,48 @@ Chaque réponse IA doit matcher ce schéma :
 {
   narration: string (max 250 tokens),
   choices: Array<{ id: string, label: string }> (3-4 max, label max 20 tokens),
-  mood: "calm" | "tense" | "festive" | "sacred" | "dangerous",
+  mood: "calm" | "tense" | "festive" | "sacred" | "dangerous" | "dread",
   npcs_present: string[] (noms des PNJ en scène)
 }
 ```
 
 Si parse Zod échoue → **retry avec prompt enrichi** _« Ton dernier output ne respectait pas le format JSON imposé. Renvoie strictement : ... »_.
+
+#### Le mood `dread` _(ajout 2026-08-15, #281)_
+
+`dread` est le **sixième mood**, distinct de `tense` et `dangerous` :
+
+| Mood        | Ce qu'il signifie                                                  | Exemple                                                |
+| ----------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| `tense`     | Quelque chose **peut** mal tourner, maintenant                     | Un garde pose la main sur son arme                     |
+| `dangerous` | La menace est **présente et identifiée**                           | Trois silhouettes armées barrent le passage            |
+| `dread`     | La menace n'est pas encore là — le monde **annonce** qu'elle vient | Un cadavre frais, encore chaud, sans agresseur visible |
+
+`dread` est le mood du **présage** (`09-ACTION-LOOP §3bis`) : le joueur voit la conséquence avant la
+cause. C'est la couleur émotionnelle qui porte l'effet de surprise recherché — il doit pouvoir
+anticiper s'il lit bien.
+
+Côté frontend, `dread` reçoit un traitement visuel propre (ambiance sourde, pas d'alerte rouge :
+c'est de l'appréhension, pas du combat). Implémentation : ticket moteur séparé.
+
+#### Le champ `foreshadow` _(ajout 2026-08-15, #281)_
+
+Un champ **optionnel** en sortie, qui laisse l'IA signaler qu'elle a semé un présage exploitable :
+
+```ts
+foreshadow?: {
+  hint: string,        // le détail semé, max 15 tokens — ex : "traces de dents sur l'os"
+  threat: string       // ce qu'il annonce, jamais montré au joueur — ex : "meute de Ventre-Gris"
+}
+```
+
+`hint` est **déjà dans la narration** ; le champ ne fait que le rendre lisible par le moteur. Le
+backend le persiste dans le `SceneLog` et le réinjecte en contexte au tour suivant, pour que la
+menace annoncée **arrive vraiment** (ou soit démentie de façon signifiante). `threat` n'est **jamais
+affiché** au joueur — c'est de la mémoire moteur, pas de la prose.
+
+🔴 **Interdit** : un `foreshadow` sans conséquence dans les 3 tours suivants. Un présage qui ne se
+réalise jamais entraîne le joueur à ne plus lire les détails — c'est l'inverse de l'effet voulu.
 
 ### 4.2 — Vérification contextuelle
 
@@ -200,6 +275,8 @@ Après parse, le backend vérifie :
 | `mood: "festive"` alors que le perso est à 1 PV              | Rejet + retry                                                      |
 | `npcs_present` contient un PNJ mort dans un run précédent    | Rejet + retry                                                      |
 | Narration mentionne un lieu inexistant dans Velkhar canon    | Rejet + retry **après 2 tentatives → renvoyer fallback générique** |
+| `foreshadow.hint` absent du texte de `narration`             | Champ ignoré (la narration reste)                                  |
+| `mood: "dread"` alors qu'aucune menace n'existe au contexte  | Ramené à `calm` (pas de retry — coût inutile)                      |
 
 ### 4.3 — Hard timeout 12 sec
 
@@ -310,12 +387,28 @@ Tu écris en 3 voix selon le contexte :
 3. PNJ GÉNÉRIQUES — neutre + variante culturelle selon peuple
    [5 variantes × 1 exemple chacune]
 
+[TON — LE MONDE EST BAROQUE, TA VOIX EST SÈCHE]
+Velkhar est une horreur sacrée : masques votifs, cloches, morts étiquetés,
+Calcinés. Tu montres cela sans jamais le commenter. Tu constates.
+- Une image forte maximum par scène, et elle doit RENSEIGNER le joueur
+  (une menace, une cause de mort, une règle du monde). Jamais de gore décoratif.
+- Une chute sèche maximum par scène (litote, constat pince-sans-rire).
+  Jamais sur la mort du joueur. Jamais adressée au joueur.
+- Le corps est une information : blessure localisée, marques, brûlure.
+
+[PRÉSAGE]
+Si la scène contient un indice de ce qui attend le joueur, sème-le dans la
+narration ET déclare-le dans "foreshadow". L'indice est visible, la menace
+qu'il annonce ne l'est pas. Ne sème jamais un présage sans intention.
+
 [INTERDITS]
 - Adverbes émotionnels (tristement, mystérieusement...)
 - "Soudain !", questions rhétoriques au joueur
 - Emojis dans la prose
 - Lore inventé hors WORLD-BIBLE
 - Happy ending forcé (Velkhar est rude)
+- Gore décoratif qui n'apprend rien
+- Humour adressé au joueur (clin d'œil, référence moderne)
 
 [FORMAT DE SORTIE — STRICTEMENT JSON]
 {
@@ -325,18 +418,30 @@ Tu écris en 3 voix selon le contexte :
     { "id": "b", "label": "..." },
     { "id": "c", "label": "..." }
   ],
-  "mood": "calm | tense | festive | sacred | dangerous",
-  "npcs_present": ["..."]
+  "mood": "calm | tense | festive | sacred | dangerous | dread",
+  "npcs_present": ["..."],
+  "foreshadow": { "hint": "...", "threat": "..." }   // optionnel
 }
 
 [CONTEXTE DE LA SCÈNE]
 {lore_velkhar_extrait}
 {état_perso : nom, vocation, peuple, PV, stats, inventaire bref}
+{blessures_localisées_actives}
 {souvenirs_nommés_pertinents}
 {mémoire_intra_run_compressée}
 {3-5_derniers_tours_en_clair}
+{présages_actifs_non_résolus}     // hint + threat des tours précédents
+{hallucinationAllowed}            // true si Calamine ≥ 50 (06-SURVIVAL §4)
 {action_du_joueur_au_tour_n}
 {résultat_dé_si_applicable}
+
+[HALLUCINATIONS]
+Si {hallucinationAllowed} est vrai, tu peux décrire UN élément sensoriel qui
+n'existe pas (une silhouette, une voix, une odeur). Jamais plus d'un par scène.
+Tu ne signales JAMAIS que c'est une hallucination.
+INTERDIT ABSOLU : halluciner une information mécanique — un PNJ dans
+"npcs_present", un objet ramassable, un chiffre, une sortie, un choix.
+L'hallucination est une ambiance, jamais une décision de jeu.
 
 [INSTRUCTION FINALE]
 Génère le tour N+1. Réponds STRICTEMENT en JSON. Une seule voix par
@@ -364,16 +469,20 @@ Détaillé dans [17-RUN-CHRONICLE](17-RUN-CHRONICLE.md). Vue côté GM :
 
 ## §8 — Risques & garde-fous
 
-| Risque                                                                        | Mitigation                                                                                                                                                          |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dérive de voix entre modèles** (DeepSeek vs Llama narrent différemment)     | Tests A/B systématiques sur 20 prompts canoniques par modèle. Si écart de style > seuil → exclure le modèle. Banque de phrases canoniques injectée à chaque prompt. |
-| **Hallucinations lore** (l'IA invente un peuple, un dieu, une région)         | Lore Velkhar injecté à chaque appel (max 500 tokens, extraits pertinents). Validation `lieu mentionné ∈ catalogue` côté backend.                                    |
-| **Latence variable free tier** (3-15 sec selon modèle/heure)                  | UI affiche _« Le MJ réfléchit... »_ avec animation discrète. Pas de timer visible.                                                                                  |
-| **Quotas free tier explosés**                                                 | Monitoring quotas en temps réel via `request_logs`. Alerte mail Adem à 80% quota. Cascade auto vers modèle suivant.                                                 |
-| **Style trop verbose** (modèles open source ont tendance à overdoser)         | Hard cap 250 tokens narration. Tronqué propre + retry si dépassement.                                                                                               |
-| **JSON cassé** (modèles open source moins fiables que Claude)                 | Parse Zod systématique. Retry avec exemple JSON valide en prompt. Au pire : fallback générique.                                                                     |
-| **Quotas free tier disparaissent** (OpenRouter retire un modèle sans préavis) | Liste cascade en env var modifiable sans redéploiement. Veille mensuelle Adem sur les modèles dispo.                                                                |
-| **Erreur fournisseur silencieuse** (modèle renvoie 200 mais contenu vide)     | Validation longueur min narration (10 tokens). Sinon retry.                                                                                                         |
+| Risque                                                                        | Mitigation                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Dérive de voix entre modèles** (DeepSeek vs Llama narrent différemment)     | Tests A/B systématiques sur 20 prompts canoniques par modèle. Si écart de style > seuil → exclure le modèle. Banque de phrases canoniques injectée à chaque prompt.                        |
+| **Hallucinations lore** (l'IA invente un peuple, un dieu, une région)         | Lore Velkhar injecté à chaque appel (max 500 tokens, extraits pertinents). Validation `lieu mentionné ∈ catalogue` côté backend.                                                           |
+| **Latence variable free tier** (3-15 sec selon modèle/heure)                  | UI affiche _« Le MJ réfléchit... »_ avec animation discrète. Pas de timer visible.                                                                                                         |
+| **Quotas free tier explosés**                                                 | Monitoring quotas en temps réel via `request_logs`. Alerte mail Adem à 80% quota. Cascade auto vers modèle suivant.                                                                        |
+| **Style trop verbose** (modèles open source ont tendance à overdoser)         | Hard cap 250 tokens narration. Tronqué propre + retry si dépassement.                                                                                                                      |
+| **JSON cassé** (modèles open source moins fiables que Claude)                 | Parse Zod systématique. Retry avec exemple JSON valide en prompt. Au pire : fallback générique.                                                                                            |
+| **Quotas free tier disparaissent** (OpenRouter retire un modèle sans préavis) | Liste cascade en env var modifiable sans redéploiement. Veille mensuelle Adem sur les modèles dispo.                                                                                       |
+| **Erreur fournisseur silencieuse** (modèle renvoie 200 mais contenu vide)     | Validation longueur min narration (10 tokens). Sinon retry.                                                                                                                                |
+| **Refus ou édulcoration du gore par un modèle free** (safety filters)         | Même protocole A/B que la dérive de voix : 20 prompts gore canoniques par modèle. Un modèle qui refuse ou lisse systématiquement descend dans la cascade. Test **avant** de figer l'ordre. |
+| **Dérive de l'humour vers le sketch** (2+ chutes par scène, ton parodique)    | Cap dur « 1 chute/scène » dans le prompt. QA de voix manuelle sur échantillon. Si un modèle empile, retirer les exemples de potence de **son** prompt (variante par modèle).               |
+| **Hallucination qui contamine la mécanique** (PNJ inventé en `npcs_present`)  | La règle `§4.2` existante s'applique inchangée : `npcs_present` et `itemGained` sont validés contre le catalogue. `hallucinationAllowed` n'assouplit **aucune** validation.                |
+| **Présage jamais résolu** (le joueur cesse de lire les détails)               | Les `foreshadow` non résolus sont réinjectés en contexte 3 tours ; au-delà, le backend les marque résolus-par-défaut et cesse de les injecter. Suivi en QA narrative.                      |
 
 ---
 

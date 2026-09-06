@@ -138,14 +138,64 @@ GRIMOIRE navigue entre trois influences :
 - **RPG narratif** (Baldur's Gate 3, Disco Elysium) — choix moraux complexes, personnages qui comptent
 - **Roguelike** (Hades, Slay the Spire) — mort qui avance le méta, rejouabilité, progression entre les runs
 
+### Le positionnement de ton _(ajout 2026-08-15, #281)_
+
+> **Le monde est _Blasphemous_. La voix est _Darkest Dungeon_.**
+
+C'est la formule qui tranche toutes les hésitations de registre. Elle sépare **ce qu'on montre** de
+**comment on le raconte** :
+
+| Couche                                       | Registre                | Ce que ça donne concrètement                                                                               |
+| -------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Le monde** (lieux, factions, iconographie) | Horreur sacrée baroque  | Masques votifs, cloches, étiquettes accrochées aux morts, Calcinés, reliquaires, rituels sans pitié        |
+| **La voix** (narration, PNJ, descriptions)   | Sec, ironique, constaté | Litote, phrase courte, chute pince-sans-rire — jamais de lyrisme liturgique qui commente sa propre gravité |
+
+Sans cette séparation, les deux registres s'annulent : un monde baroque **raconté** en liturgie
+devient pompeux, et une voix sèche appliquée à un monde neutre devient plate. Le contraste — image
+atroce, ton posé — est **la** signature de GRIMOIRE.
+
+Détail d'application de la voix : `15-GAME-MASTER §1.2`.
+
+### L'humour de potence _(ajout 2026-08-15, #281)_
+
+L'interdit « humour briseur de ton » ci-dessous **ne bannit pas le rire** : il bannit le rire qui
+sort le joueur du monde. L'humour autorisé est **l'humour de potence** — celui de gens qui vivent
+au milieu de l'horreur et l'ont banalisée.
+
+| ✅ Humour de potence (autorisé)                                       | ❌ Humour briseur (interdit)                   |
+| --------------------------------------------------------------------- | ---------------------------------------------- |
+| La litote sur l'atroce (_« Le péage reste ouvert. »_)                 | La vanne qui s'adresse au joueur               |
+| Un PNJ qui traite l'horreur comme de la routine administrative        | Le clin d'œil méta / la référence moderne      |
+| Le constat sec en fin de scène (_« Évidemment. »_)                    | Le personnage qui se moque de son propre monde |
+| L'absurde bureaucratique appliqué à la mort (trier, étiqueter, taxer) | Le running gag, la parodie                     |
+
+**Règle de dosage : une chute sèche maximum par scène.** Deux chutes dans la même narration = la
+scène devient un sketch, la tension meurt. Si le tour est déjà court ou tendu, aucune chute.
+
+### Le budget gore _(ajout 2026-08-15, #281)_
+
+Le gore n'est pas une intensité, c'est un **signal**. Un corps mutilé dans GRIMOIRE dit toujours
+quelque chose de mécanique : ce qui vit ici, ce qui est arrivé au dernier passant, ce qui attend le
+joueur au prochain tour.
+
+- **Une image forte maximum par scène.** Au-delà, l'horreur devient un bruit de fond que le joueur
+  scanne au lieu de lire.
+- **Gore signifiant uniquement.** Si l'image ne renseigne pas le joueur sur une menace, un lieu ou
+  une règle du monde, elle ne mérite pas ses tokens.
+- **Le corps est une information, pas une décoration.** Blessure localisée, marques de dents,
+  brûlure d'archonte : chaque détail doit être lisible comme un indice (cf. `09-ACTION-LOOP §3bis`).
+- **Jamais de complaisance** : la torture longue, le détail anatomique gratuit et la souffrance
+  d'enfant restent hors périmètre — public 18+ ne veut pas dire absence de goût.
+
 ### Trucs à éviter absolument
 
-- Humour briseur de ton (style Marvel)
+- Humour briseur de ton (style Marvel) — **mais l'humour de potence est autorisé, voir ci-dessus**
 - Power fantasy de surpuissance
 - Poncifs D&D (elfes/nains/orcs génériques)
 - Moralité binaire Bien/Mal
 - Exposition pavée
 - Gameplay qui étouffe la narration
+- Gore décoratif : une horreur qui n'apprend rien au joueur
 
 ### Trucs à viser
 
@@ -155,6 +205,9 @@ GRIMOIRE navigue entre trois influences :
 - Langage sensoriel : le sable, la soif, la lumière rasante, le silence
 - Lenteur comme outil narratif
 - La mort comme moment de récit, pas de frustration
+- **Humour de potence** : le constat sec sur l'atroce, une chute par scène maximum
+- **Gore signifiant** : une image forte par scène, qui renseigne toujours sur une menace
+- **Le présage** : le joueur doit pouvoir deviner ce qui l'attend s'il lit bien (cf. `09-ACTION-LOOP §3bis`)
 
 ---
 

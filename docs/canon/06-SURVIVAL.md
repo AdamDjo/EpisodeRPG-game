@@ -95,6 +95,35 @@ Le backend possède toutes les règles (cf. `15-GAME-MASTER §0`). Les condition
 
 🟢 _Règle : une condition non présente dans la table ci-dessus (id inconnu) est **rejetée** par le backend. L'IA ne peut pas inventer de condition._
 
+### La localisation des blessures _(ajout 2026-08-15, #281)_
+
+La condition `wound` porte désormais une **localisation persistée**. Objectif : le corps du
+personnage devient une **information lisible**, pas un compteur abstrait — le joueur se souvient de
+_ce qui lui est arrivé_, et l'IA a de quoi le lui rappeler à chaque scène.
+
+```ts
+wound: {
+  id: "wound",
+  location: "head" | "torso" | "left_arm" | "right_arm" | "left_leg" | "right_leg" | "hand" | "eye",
+  cause: string        // court, narratif : "morsure", "brûlure d'archonte", "lame ébréchée"
+}
+```
+
+- La **localisation est décidée par le backend** au moment où la condition est appliquée
+  (`wound` est une condition [BACKEND], cf. ci-dessus). L'IA ne la choisit pas — elle la **narre**.
+- Elle est **persistée sur le personnage** et réinjectée en contexte à chaque tour
+  (`{blessures_localisées_actives}`, cf. `15-GAME-MASTER §6`) : une jambe blessée reste une jambe
+  blessée trois scènes plus tard, dans la prose comme dans la mémoire du joueur.
+- **Aucun effet mécanique différencié en V1** : toutes les localisations produisent le même
+  Désavantage. La localisation est **narrative et mnémonique** — pas un système de dégâts
+  localisés. (Un malus par membre est explicitement **hors périmètre V1** : coût d'équilibrage
+  disproportionné pour un roguelike de 2h.)
+- Plusieurs `wound` de localisations différentes peuvent coexister ; le Désavantage, lui, **ne
+  s'empile pas** (cf. `08-DICE-RESOLUTION §5`).
+
+🟢 _Règle d'écriture : la blessure doit apparaître dans la narration quand elle gêne l'action tentée
+— jamais comme un rappel systématique en début de chaque scène._
+
 ### Traduction mécanique de l'effet « désavantage »
 
 Les conditions sévères n'appliquent **pas** de malus plat au d20. Elles imposent le **Désavantage** (2d20, garder le pire) — le mécanisme canon décrit dans `08-DICE-RESOLUTION §5`. Cela remplace toute lecture « -1 / -2 au jet » de la table pour l'implémentation moteur : le moteur applique le désavantage, l'affichage indique au joueur pourquoi.
@@ -167,6 +196,38 @@ La magie n'est jamais gratuite (voir `02-WORLD-BIBLE.md`). **Tout usage d'artefa
 | 100   | Transformation   | Le perso devient un Calciné → **mort du perso** |
 
 Implémentée par `calamineTier()` (`apps/backend/src/game-rules/conditions.ts`) : mêmes seuils.
+
+### Les hallucinations de Calamine _(ajout 2026-08-15, #281)_
+
+À partir du **stade 2 (Calamine ≥ 50)**, la corruption ne se contente plus de saigner le corps :
+elle **abîme ce que le personnage perçoit**. Le backend expose alors un drapeau de contexte à l'IA :
+
+```ts
+hallucinationAllowed: boolean; // true dès calamine >= 50
+```
+
+Ce que le drapeau autorise, et rien de plus :
+
+| ✅ Autorisé quand le drapeau est vrai                        | ❌ Interdit en toutes circonstances                |
+| ------------------------------------------------------------ | -------------------------------------------------- |
+| Une silhouette au bord du champ de vision, qui n'est plus là | Un PNJ halluciné listé dans `npcs_present`         |
+| Une voix connue qui appelle depuis un lieu vide              | Un objet halluciné proposé via `itemGained`        |
+| Une odeur, un bruit, une texture qui n'existent pas          | Un chiffre, une jauge, un résultat de dé faussé    |
+| Un détail du décor qui change entre deux phrases             | Une sortie, un chemin ou un choix qui n'existe pas |
+
+> **Règle absolue : l'hallucination est une ambiance, jamais une décision de jeu.**
+>
+> Le contrat `15-GAME-MASTER §0` reste entier — l'IA ne décide rien. Les validations de
+> `15-GAME-MASTER §4.2` (PNJ ∈ catalogue, item ∈ catégories connues) s'appliquent **inchangées**
+> même quand `hallucinationAllowed` est vrai. Un joueur peut douter de ce qu'il voit ; il ne doit
+> **jamais** douter de ce que l'UI lui affiche.
+
+- **Une hallucination maximum par scène**, et seulement si elle sert la tension.
+- L'IA ne **signale jamais** qu'il s'agit d'une hallucination : pas de _« peut-être une illusion »_.
+  Le doute appartient au joueur.
+- Au **stade 3 (≥ 75)**, la fréquence augmente mais les interdits ci-dessus ne bougent pas.
+- 🟢 _Lecture design : c'est la contrepartie perceptive du pacte magique. Plus le personnage tire
+  sur les artefacts, moins sa lecture du monde est fiable — mais le jeu, lui, reste honnête._
 
 ### Comment réduire la Calamine
 

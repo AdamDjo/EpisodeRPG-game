@@ -224,6 +224,36 @@ Seulement **3 catégories** de traces persistent :
 
 Pas de tracking de chaque PNJ secondaire, pas de "tous les marchands se souviennent de toi" — économie de DB + cohérence narrative.
 
+### La dépouille du perso précédent _(ajout 2026-08-15, #281)_
+
+Une **quatrième catégorie de trace**, la seule qui soit à la fois narrative et **utile** au joueur :
+là où le personnage précédent est mort, il **reste**.
+
+| Catégorie         | Contenu                                                          | Persistance                       |
+| ----------------- | ---------------------------------------------------------------- | --------------------------------- |
+| **`corpse_left`** | Lieu de mort + cause + une image du corps + son équipement porté | 1 run (consommée à la découverte) |
+
+- Le backend écrit la trace **à la fin du run** depuis le `endReason` (cf. `09-ACTION-LOOP §7`) et
+  le dernier lieu connu. Aucune décision IA : c'est un enregistrement mécanique.
+- Au run suivant, si le nouveau personnage **passe au même endroit**, le corps est injecté en
+  contexte comme un **cadavre-présage** (cf. `09-ACTION-LOOP §3bis`) : il annonce ce qui a tué le
+  précédent, exactement comme n'importe quel présage du monde.
+- La cause de mort est **montrée, jamais nommée** : le run N+1 voit une gorge ouverte, une peau
+  grise de Calamine, une gourde vide — pas l'étiquette `endReason`.
+- **L'équipement porté est récupérable**, dans la limite fixée par `11-INVENTORY-ECONOMY` (sac plein,
+  objets liés). C'est la seule exception apparente à la règle « pas d'équipement cumulé d'un run à
+  l'autre » (§1bis) — et elle n'en est pas une : le joueur ne récupère **rien** s'il ne retourne pas
+  sur les lieux, ce qui coûte du temps, de la soif et du risque. Le gain est **payé dans le run**,
+  pas offert entre les runs.
+- **Une seule dépouille active** : la mort du run N remplace celle du run N-1. Pas de cimetière
+  cumulatif (saturation DB, et l'effet s'émousse).
+- Si le run précédent s'est terminé par `calcined`, il n'y a **pas de dépouille** — il y a un
+  **Calciné qui marche encore** dans le secteur. Il porte l'équipement, il ne le rend pas.
+
+🟢 _Pourquoi ça marche : c'est le crochet de rétention le plus court du jeu. « Mon dernier perso est
+mort là-bas, avec ma bonne lame » est une raison de relancer un run qui ne coûte ni contenu ni
+équilibrage — et qui fabrique une histoire personnelle au passage._
+
 ### Format DB
 
 ```json
