@@ -171,6 +171,45 @@ export function resolveKnockout(context: KnockoutContext): KnockoutVerdict {
   return living.every((enemy) => enemy.species === 'human') ? 'captured' : 'dead'
 }
 
+// ─── The SOUFFLE tempo (§4, §7) ─────────────────────────────────────────────
+
+/**
+ * Base armour class from the SOUFFLE modifier, before any armour bonus.
+ * Not a linear `10 + mod`: canon steepens the curve past +1 so the tempo
+ * payoff at +2 (the bonus action) also reads on the defensive side.
+ * @see 10-COMBAT.md §4
+ */
+export function armourClassFromBreath(breath: number): number {
+  const mod = attributeModifier(breath)
+  if (mod <= -1) return 10
+  if (mod === 0) return 11
+  if (mod === 1) return 13
+  if (mod === 2) return 15
+  if (mod === 3) return 16
+  return 17
+}
+
+/** Fleeing rolls with advantage or disadvantage at the tempo extremes. @see 10-COMBAT.md §7 */
+export function fleeModeFromBreath(breath: number): 'advantage' | 'disadvantage' | 'normal' {
+  const mod = attributeModifier(breath)
+  if (mod <= -1) return 'disadvantage'
+  if (mod >= 2) return 'advantage'
+  return 'normal'
+}
+
+/**
+ * Whether SOUFFLE's tempo grants a second action this round. Mod +2 is
+ * probabilistic ("2 tours sur 3") so the step from +1 does not read as a hard
+ * threshold; +3 and +4 always grant it.
+ * @see 10-COMBAT.md §4
+ */
+export function hasBonusAction(breath: number, rng: () => number): boolean {
+  const mod = attributeModifier(breath)
+  if (mod <= 1) return false
+  if (mod === 2) return rng() < 2 / 3
+  return true
+}
+
 // ─── Enemy instantiation ────────────────────────────────────────────────────
 
 /** Attributes given to an instantiated creature, scaled off its stat block. */
@@ -552,7 +591,8 @@ export function resolvePlayerTurn(input: PlayerTurnInput): PlayerTurnResult {
 
     case 'flee': {
       const dc = isEngaged(state) ? FLEE_DC.engaged : FLEE_DC.normal
-      const roll = rollAgainst(state.player.attributes, 'breath', dc, rng)
+      const mode = fleeModeFromBreath(state.player.attributes.breath)
+      const roll = rollAgainst(state.player.attributes, 'breath', dc, rng, mode)
 
       if (roll.success) {
         // Canon leaves the choice of direction to the player and makes both

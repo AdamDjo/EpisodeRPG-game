@@ -11,18 +11,35 @@ import type { CreatureId, CreatureStatBlock, CreatureVariant, DamageDice } from 
  * (`08-DICE-RESOLUTION §7`: 1d4 → 1d12). Those are the anchors this table is
  * built on; nothing here is a placeholder awaiting a "real" value later.
  *
- * **How the numbers were derived.** A starting character has `PV = 10 + SANG`,
- * so ≈11 HP, CA 11 in leather, and hits for a short sword + SANG ≈ 4.5 per
- * turn. Two ratios follow, and they are what the whole table is calibrated on:
+ * **How the numbers were derived.** A starting character has `PV = 16 + 4×mod
+ * SANG` (`maxHpFromBlood`, #265), so 16 HP at the average attribute and up to
+ * 32 at the maximum, CA derived from SOUFFLE (`armourClassFromBreath`), and
+ * hits for a short sword + SANG ≈ 4.5 per turn before #266's equipment lands.
+ * The table is calibrated on a single ratio:
  *
- * - **HP is read as turns-to-kill.** 6 HP ≈ two player turns, 30 HP ≈ seven.
- * - **Damage is read as turns-to-die.** A creature dealing 1d4 (≈2.5) needs
- *   four turns to drop that character; one dealing 1d10 (≈5.5) needs two.
+ * - **Enemy damage is read as tours-pour-mourir**: how many hits an average
+ *   player (16 HP) survives against a given creature — `ttd = 16 / avg_dmg`.
+ *   Enemy HP is *not* the calibration lever here (that reads as tours-pour-tuer,
+ *   which depends on the player's own weapon and is #266's concern) — only
+ *   how threatening a creature's blows feel to a player standing in front of it.
  *
- * That is why the floor bands of `03-BESTIARY §6bis` land where they do: floors
- * 1-2 hold creatures the player survives seven-plus turns against ("je gère"),
- * floors 5-6 hold ones that kill in three ("je devrais peut-être remonter"),
- * and floor 7 holds ones that kill in two.
+ * Target bands (`03-BESTIARY §6bis`), tours-pour-mourir:
+ *
+ * | Palier | Cible |
+ * |---|---|
+ * | 1-2 | 6-7 |
+ * | 3-5 | 4 |
+ * | 5-7 | 2.5 |
+ * | 6-7 | 2 |
+ *
+ * Floors 1-2 (civil/common fauna, 1d4 ≈ 2.5 dmg) land at ttd ≈ 6.4. Floors 3-5
+ * (calciné courant, brigand, revenant, soldat, bête de rivage, ~1d6-1d8) land
+ * at ttd ≈ 3.6-4.6. Floors 5-7 rares (calciné ancien, tisseur, veilleur,
+ * inquisiteur) were brought down from 1d10/1d12 to 1d8-1d10 (avg ≈ 6.5) to land
+ * at ttd ≈ 2.46 rather than the ~1.5 a d12 would have given post-#265. Floor 7
+ * legendaries (calciné majeur, cœur de sable, veilleur-roi) sit at avg ≈ 8-9
+ * dmg for ttd ≈ 1.8-2. Enemy HP is unchanged from pre-#265 — it still reads as
+ * tours-pour-tuer once #266 wires real weapon damage in.
  *
  * The two AC values the canon states outright are honoured exactly rather than
  * re-derived: crawling Calciné 12, Watcher 18.
@@ -30,6 +47,7 @@ import type { CreatureId, CreatureStatBlock, CreatureVariant, DamageDice } from 
  * @see docs/canon/03-BESTIARY.md §2-§6ter
  * @see docs/canon/10-COMBAT.md §4
  * @see docs/canon/08-DICE-RESOLUTION.md §7
+ * @see docs/canon/04-ATTRIBUTES.md (SANG/SOUFFLE/VOLONTÉ tables, #265)
  */
 const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
   // ─── 💛 Calcinés (§2) ────────────────────────────────────────────────────
@@ -78,9 +96,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     engagement: 'fight',
     // "Très résistant, frappe lourd, lent": high HP and damage, and the low
     // initiative that its slowness implies is expressed by attributes, not here.
+    // Damage brought down from 1d10+2 post-#265 (a 16 HP player would die in
+    // ~2.1 turns pre-adjustment) to land tours-pour-mourir on the palier 5-7
+    // target of ~2.5.
     maxHp: 30,
     armourClass: 15,
-    damage: { count: 1, faces: 10, bonus: 2 },
+    damage: { count: 1, faces: 8, bonus: 2 },
     loot: ['magic_components', 'minor_artefact'],
     minDepth: 5,
     maxDepth: 7,
@@ -94,10 +115,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     behaviour: 'predatory',
     engagement: 'fight',
     // Floor boss. Kills an unprepared character in two turns — which is the
-    // point: "une rencontre qu'on n'oublie pas — si on survit".
+    // point: "une rencontre qu'on n'oublie pas — si on survit". Damage bonus
+    // trimmed from +3 to +1 post-#265 (16 HP baseline) to hold tours-pour-mourir
+    // at the palier 6-7 target of ~2 rather than overshooting to ~1.6.
     maxHp: 48,
     armourClass: 16,
-    damage: { count: 2, faces: 6, bonus: 3 },
+    damage: { count: 2, faces: 6, bonus: 1 },
     loot: ['magic_components', 'major_artefact'],
     minDepth: 6,
     maxDepth: 7,
@@ -220,12 +243,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     engagement: 'fight',
     // "Solitaire, mortel." Massive and ambushing from below: heavy damage,
     // but a broad body that is not hard to hit once it has surfaced. Canon
-    // calls it outright deadly, and at 1d10+2 it drops the reference character
-    // in two turns — so it belongs to the floors where the player is supposed
-    // to wonder whether to climb back out, not to the ones that merely cost.
+    // calls it outright deadly. Damage brought down from 1d10+2 post-#265 to
+    // 1d8+2 to hold tours-pour-mourir at the palier 5-7 target of ~2.5 rather
+    // than overshooting to ~2.1 against the new 16 HP baseline.
     maxHp: 26,
     armourClass: 13,
-    damage: { count: 1, faces: 10, bonus: 2 },
+    damage: { count: 1, faces: 8, bonus: 2 },
     loot: ['magic_components', 'rare_metals'],
     minDepth: 5,
     maxDepth: 7,
@@ -260,9 +283,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     // AC 18 is canon, stated outright in the enemy table — the single hardest
     // thing to hit in the game, stone and metal. "Très résistant, frappe lourd."
     // Canon also notes it is immune to Intimidation: an automaton has no fear.
+    // Damage brought down from 1d12+2 post-#265 to 1d10+1 to hold
+    // tours-pour-mourir at the palier 5-7 target of ~2.5 against the new 16 HP
+    // baseline, rather than overshooting to under 2.
     maxHp: 34,
     armourClass: 18,
-    damage: { count: 1, faces: 12, bonus: 2 },
+    damage: { count: 1, faces: 10, bonus: 1 },
     loot: ['rare_metals', 'minor_artefact'],
     minDepth: 5,
     maxDepth: 7,
@@ -334,10 +360,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     behaviour: 'territorial',
     engagement: 'fight',
     // A living mass of crystallised Ash: enormous HP, and slow enough to be
-    // hittable. The run either ends here or is won here.
+    // hittable. The run either ends here or is won here. Damage dialled from
+    // 2d8+3 to 2d6+2 post-#265 to hold tours-pour-mourir at the palier 6-7
+    // target of ~2 against the new 16 HP baseline.
     maxHp: 70,
     armourClass: 15,
-    damage: { count: 2, faces: 8, bonus: 3 },
+    damage: { count: 2, faces: 6, bonus: 2 },
     loot: ['major_artefact', 'magic_components'],
     minDepth: 7,
     maxDepth: 7,
@@ -351,10 +379,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     behaviour: 'territorial',
     engagement: 'fight',
     // The oldest Watcher, near-conscious. Keeps the Watcher's AC 18 and
-    // outclasses it on every other axis.
+    // outclasses it on every other axis. Damage bonus trimmed from +4 to +2
+    // post-#265 to hold tours-pour-mourir at the palier 6-7 target of ~2
+    // against the new 16 HP baseline.
     maxHp: 60,
     armourClass: 18,
-    damage: { count: 2, faces: 6, bonus: 4 },
+    damage: { count: 2, faces: 6, bonus: 2 },
     loot: ['major_artefact', 'rare_metals'],
     minDepth: 7,
     maxDepth: 7,
@@ -446,9 +476,12 @@ const BESTIARY: Record<CreatureId, CreatureStatBlock> = {
     engagement: 'fight',
     // Canon AC 16 — above a Watcher's peer and second only to it. Canon also
     // prices his purse at 50 🪙 (11-INVENTORY §120), the richest human loot.
+    // Damage brought down from 1d10+3 post-#265 to 1d8+2 to hold
+    // tours-pour-mourir at the palier 5-7 target of ~2.5 against the new 16 HP
+    // baseline, rather than overshooting to under 2.
     maxHp: 26,
     armourClass: 16,
-    damage: { count: 1, faces: 10, bonus: 3 },
+    damage: { count: 1, faces: 8, bonus: 2 },
     loot: ['rare_metals', 'magic_components', 'minor_artefact'],
     // Floors 5+, with the things that kill in two turns. Canon rates him the
     // second-hardest AC in the game and a « Légendaire » DC 25 even to talk

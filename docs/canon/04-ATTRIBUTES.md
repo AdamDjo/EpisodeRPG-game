@@ -239,7 +239,7 @@ Les attributs influencent aussi les statistiques de survie (détail dans `06-SUR
 
 | Stat de survie         | Attribut lié                                                  |
 | ---------------------- | ------------------------------------------------------------- |
-| PV (Points de Vie)     | SANG (base 10 + SANG)                                         |
+| PV (Points de Vie)     | `PV = 16 + 4 × mod SANG` (#265)                               |
 | Faim (résistance)      | SANG                                                          |
 | Soif (résistance)      | SANG                                                          |
 | Fatigue (résistance)   | SANG                                                          |

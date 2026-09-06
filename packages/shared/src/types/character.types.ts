@@ -26,9 +26,9 @@ export function attributeModifier(value: number): number {
   return 4;
 }
 
-/** Max HP derived from the blood attribute. Canon: PV_max = 10 + mod SANG. */
+/** Max HP derived from the blood attribute. Canon: PV_max = 16 + 4 × mod SANG. */
 export function maxHpFromBlood(blood: number): number {
-  return 10 + attributeModifier(blood);
+  return 16 + 4 * attributeModifier(blood);
 }
 
 /**

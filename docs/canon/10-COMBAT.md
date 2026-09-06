@@ -163,11 +163,19 @@ Le joueur active un artefact (toute vocation, 1×/scène, voir `11-INVENTORY-ECO
 
 ## 4. La Classe d'Armure (CA)
 
-Formule simple, pas de calcul complexe :
+**Formule non-linéaire (#265)**, dérivée du mod SOUFFLE — pas un `10 + mod` plat, pour que
+chaque palier de SOUFFLE se sente comme un vrai gain défensif :
 
-```
-CA = 10 + mod SOUFFLE + bonus armure
-```
+| mod SOUFFLE | CA de base |
+| ----------- | ---------- |
+| ≤ −1        | 10         |
+| 0           | 11         |
+| +1          | 13         |
+| +2          | 15         |
+| +3          | 16         |
+| +4          | 17         |
+
+Le bonus d'armure (équipement, #266) s'ajoute par-dessus cette base :
 
 | Armure                  | Bonus CA | Malus                       |
 | ----------------------- | -------- | --------------------------- |
@@ -177,11 +185,20 @@ CA = 10 + mod SOUFFLE + bonus armure
 | Plate                   | +3       | -1 Furtivité, -1 Athlétisme |
 | Soie archontique (rare) | +2       | — (artefact)                |
 
-→ Un Marcheur-du-Sel (SOUFFLE 0) en cuir : CA = 10 + 0 + 1 = **11**
-→ Un Lame-Ombre (SOUFFLE +2) en cuir : CA = 10 + 2 + 1 = **13**
-→ Un Veilleur en maille : CA = 10 + 2 + 2 = **14**
-
 🟢 _La CA évolue avec l'équipement. Le joueur ressent immédiatement l'effet d'une nouvelle armure._
+
+### L'action supplémentaire de SOUFFLE (#265)
+
+Un SOUFFLE élevé accélère aussi le tempo du combattant, indépendamment de la CA :
+
+| mod SOUFFLE | Action supplémentaire au tour |
+| ----------- | ----------------------------- |
+| ≤ +1        | Non                           |
+| +2          | Probabiliste — 2 tours sur 3  |
+| ≥ +3        | Oui, systématiquement         |
+
+🟢 _Le mod +2 est volontairement probabiliste : le palier +1 → +2 ne doit pas se lire comme un
+seuil dur qui double le nombre d'actions d'un coup._
 
 ### CA des ennemis (référence rapide)
 

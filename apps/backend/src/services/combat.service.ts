@@ -5,8 +5,10 @@ import { z } from 'zod'
 import { creaturesForDepth, creaturesForReturn } from '../game-rules/bestiary'
 import {
   advanceTurn,
+  armourClassFromBreath,
   checkCombatEnd,
   endCombat,
+  hasBonusAction,
   instantiateEnemy,
   projectCombat,
   resolveEnemyTurn,
@@ -177,10 +179,9 @@ export function toCombatStatePersistence(state: CombatState | null): CombatState
 /**
  * The player as the fight sees them, assembled from the character sheet.
  *
- * Armour class is the canon starting figure for leather (`10-COMBAT §4`); the
- * inventory does not yet carry an armour rating, so deriving it from equipment
- * would mean inventing one. Anchoring on the documented baseline keeps the
- * number traceable to canon rather than to a guess.
+ * Armour class is derived from SOUFFLE (`10-COMBAT §4`); the inventory does not
+ * yet carry an armour rating, so an equipment bonus on top of this base is
+ * future work rather than something to guess at here.
  */
 function toCombatPlayer(
   attributes: Attributes,
@@ -190,15 +191,12 @@ function toCombatPlayer(
   return {
     hp: survival.hp,
     maxHp: survival.maxHp,
-    armourClass: BASE_ARMOUR_CLASS,
+    armourClass: armourClassFromBreath(attributes.breath),
     attributes,
     conditions: [...conditions],
     combatConditions: [],
   }
 }
-
-/** Leather armour, the canon starting kit. @see 10-COMBAT §4 */
-const BASE_ARMOUR_CLASS = 11
 
 /**
  * The creatures that may legitimately appear where the player currently stands.
@@ -368,6 +366,7 @@ export interface CombatTurnOutput {
  * has nobody left to swing.
  */
 export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
+  const rng = input.rng ?? Math.random
   const playerTurn = resolvePlayerTurn({
     state: input.state,
     action: input.action,
@@ -375,7 +374,7 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
     fleeDirection: input.fleeDirection,
     itemHealing: input.itemHealing,
     allyKind: input.allyKind,
-    rng: input.rng,
+    rng,
   })
 
   let state: CombatState = {
@@ -386,12 +385,37 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
   let definitiveDeath = false
   const entriesThisTurn: CombatLogEntry[] = [playerTurn.entry]
 
+  // A high-SOUFFLE character strikes twice per exchange (10-COMBAT §4): the
+  // bonus action repeats the same intent immediately, before the enemy
+  // answers. `flee` already resolves the whole attempt on its own, so it has
+  // nothing left for a second action to add.
+  const afterFirstAction = state.outcome ?? checkCombatEnd(state)
+  if (
+    afterFirstAction === null &&
+    input.action !== 'flee' &&
+    hasBonusAction(state.player.attributes.breath, rng)
+  ) {
+    const bonusTurn = resolvePlayerTurn({
+      state,
+      action: input.action,
+      targetId: input.targetId,
+      itemHealing: input.itemHealing,
+      allyKind: input.allyKind,
+      rng,
+    })
+    state = {
+      ...bonusTurn.state,
+      log: [...bonusTurn.state.log, bonusTurn.entry],
+    }
+    entriesThisTurn.push(bonusTurn.entry)
+  }
+
   const afterPlayer = state.outcome ?? checkCombatEnd(state)
   if (afterPlayer === null) {
     const enemyTurn = resolveEnemyTurn({
       state: advanceTurn(state),
       survival,
-      rng: input.rng,
+      rng,
     })
     state = {
       ...enemyTurn.state,
@@ -409,7 +433,7 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
   }
 
   const settled: CombatState = { ...state, outcome }
-  const result = endCombat({ state: settled, rng: input.rng })
+  const result = endCombat({ state: settled, rng })
 
   return { state: settled, survival, result, definitiveDeath, entriesThisTurn }
 }
