@@ -133,6 +133,48 @@ export interface RunContract {
   failureConditions: string[];
 }
 
+/**
+ * Narrative label for how a contract's danger tag compares to the player's
+ * gear, shown before acceptance. Never "facile" — even a perfect match stays
+ * `tendu`, because the design intent is that no tier is ever an easy run.
+ * @see 23-RUN-STRUCTURE.md §2bis
+ */
+export type PowerGapRegistry = "tense" | "hard" | "very_hard" | "impossible";
+
+/**
+ * How graphic the death scene must be, handed to the narrator as a fixed
+ * instruction rather than left to its judgment — same pattern as
+ * `KnockoutVerdict` (10-COMBAT.md §8): the backend decides, the AI writes.
+ * @see 23-RUN-STRUCTURE.md §2bis
+ */
+export type DeathIntensity = "sober" | "brutal" | "gore_total";
+
+/**
+ * The equipment-vs-danger read-out shown at the Comptoir before a contract is
+ * accepted. `gap` is `powerScore - contractWeight`: 0 is a perfect match (and
+ * still `difficile`), negative is underequipped, positive is overqualified.
+ * Purely informative — accepting an `impossible` contract stays possible; this
+ * is a warning, never a lock (`01-PILLARS` — le retour peut tuer, mais jamais
+ * par surprise).
+ * @see 23-RUN-STRUCTURE.md §2bis
+ */
+export interface PowerGapProjection {
+  /** 0-9: weapon tier + armour tier + relic score, each 0-3. */
+  powerScore: number;
+  /** Numeric weight behind the contract's `danger` tag, on the same 0-9 scale. */
+  contractWeight: number;
+  /** `powerScore - contractWeight`. */
+  gap: number;
+  registry: PowerGapRegistry;
+  deathIntensity: DeathIntensity;
+  /** Turn the run is expected to kill the player if the fight goes wrong. */
+  deathTurn: number;
+  /** Turn a matched fight is expected to be won by. */
+  killTurn: number;
+  /** Applied to `rewardGold` at settlement. A `fragile` value — see canon. */
+  rewardMultiplier: number;
+}
+
 /** What a room holds. @see 23-RUN-STRUCTURE.md §2 */
 export type RoomType =
   | "combat"

@@ -108,6 +108,45 @@ disponibles sans dépendre d'une décision du modèle IA.
 
 ---
 
+## 2bis. Équipement contre palier — l'écart de puissance
+
+Le jeu n'interdit jamais un contrat selon l'équipement (§2 « Liberté et verrouillage »), mais il ne
+le rend jamais facile non plus. Chaque contrat porte un **palier** (`CONTRACT_WEIGHT`) chiffré à
+partir de son tag de danger : Facile = 3, Moyen = 6, Difficile = 9. Le personnage porte un **score de
+puissance**, calculé à partir de son équipement effectivement porté :
+
+- l'arme en main principale (tier 0 à 3, catalogue fermé — `11-INVENTORY-ECONOMY.md` §4) ;
+- l'armure portée (tier 0 à 3, même catalogue) ;
+- les reliques détenues (1 point par artefact, plafonné à 3).
+
+Score de puissance = arme + armure + reliques, sur une échelle de 0 à 9.
+
+L'**écart** est `score − palier`. Il pilote quatre curseurs à la fois — le rythme du combat, le
+registre de mort, et la récompense — jamais un seul en isolation :
+
+| Écart | Registre       | Tuer en (tours) | Mourir en (tours) | Mort       | Récompense |
+| ----- | -------------- | --------------- | ----------------- | ---------- | ---------- |
+| ≥ +1  | Tendu          | 3               | 6                 | Sobre      | ×0,6       |
+| 0     | Difficile      | 4               | 4                 | Sobre      | ×1         |
+| −1    | Très difficile | 6               | 3                 | Brutale    | ×1,3       |
+| ≤ −2  | Impossible     | 9               | 2                 | Gore total | ×1,6       |
+
+Deux principes gouvernent ce tableau :
+
+- **Aucun run n'est facile.** Un équipement parfaitement calibré au palier (écart 0) reste étiqueté
+  « Difficile », jamais « Facile » — le palier Facile lui-même pèse 3, jamais 0, précisément pour
+  qu'aucun contrat n'offre un écart toujours positif par construction.
+- **Farmer le bas ne mène nulle part.** Un personnage largement surqualifié (écart ≥ +1) tue et meurt
+  plus vite, mais est payé 40 % de moins — revenir sur des contrats faciles avec un équipement
+  avancé n'est jamais la stratégie optimale.
+
+Le registre de mort ne concerne que la narration d'un verdict `dead` (`08-DEATH-MORTALITY.md`) — il
+ne modifie ni le verdict de KO (`saved` / `captured` / `dead`, résolu indépendamment) ni les règles
+de survie. Le score de puissance et l'écart ne sont jamais persistés : ils sont recalculés à chaque
+tour de combat et à l'extraction, à partir de l'inventaire courant et du palier du contrat actif.
+
+---
+
 ## 3. Le run commence au départ
 
 Le run ne commence pas à l'entrée d'un donjon. Il commence lorsque le joueur quitte l'Auberge :

@@ -6,7 +6,12 @@ import type {
 import type { CombatSnapshot } from "./combat.types";
 import type { DiceRoll } from "./dice.types";
 import type { ItemGained } from "./inventory.types";
-import type { GameMode, ReturnEstimate, RunContract } from "./run.types";
+import type {
+  GameMode,
+  PowerGapProjection,
+  ReturnEstimate,
+  RunContract,
+} from "./run.types";
 import type { SessionEndReason } from "./session.types";
 
 export type SceneType =
@@ -151,6 +156,12 @@ export interface RunSnapshot {
   objectiveSecured: boolean;
   /** Honest cost of getting home from here — shown before every descend decision. */
   returnEstimate: ReturnEstimate;
+  /**
+   * Equipment-vs-danger read-out for this contract, shown before and
+   * throughout the run — never a lock, even at `impossible`.
+   * @see docs/canon/23-RUN-STRUCTURE.md §2bis
+   */
+  powerGapProjection: PowerGapProjection;
   /** Minutes left for the whole run, descent included. Display only. */
   estimatedRemainingMinutes: number;
   /** Whether "descendre encore" is still a legal move. */

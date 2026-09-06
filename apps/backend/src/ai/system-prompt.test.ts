@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildSystemPrompt, type RecentTurnSummary, type RunPromptContext } from './system-prompt'
+import {
+  buildSystemPrompt,
+  type CombatPromptContext,
+  type RecentTurnSummary,
+  type RunPromptContext,
+} from './system-prompt'
 
 import type { MemoryChunkModel, SouvenirModel } from '../generated/prisma/models'
 
@@ -412,5 +417,66 @@ describe('run section', () => {
 
     expect(prompt).toContain('You never decide when a warning is owed')
     expect(prompt).toContain('you give it a voice')
+  })
+})
+
+describe('combat section — death intensity (#268)', () => {
+  function combat(overrides: Partial<CombatPromptContext> = {}): CombatPromptContext {
+    return {
+      action: 'attack',
+      round: 2,
+      events: ['The wolf lunges and connects.'],
+      outcome: 'defeat',
+      knockoutVerdict: 'dead',
+      ...overrides,
+    }
+  }
+
+  function promptWithCombat(context: CombatPromptContext): string {
+    return buildSystemPrompt(character, 'en', [], [], [], null, context)
+  }
+
+  it('says nothing about death intensity when the verdict is not dead', () => {
+    const prompt = promptWithCombat(combat({ knockoutVerdict: 'saved' }))
+
+    expect(prompt).toContain('PULLED OUT ALIVE')
+    expect(prompt).not.toContain('Death intensity')
+  })
+
+  it('says nothing about death intensity when captured', () => {
+    const prompt = promptWithCombat(combat({ knockoutVerdict: 'captured' }))
+
+    expect(prompt).toContain('TAKEN PRISONER')
+    expect(prompt).not.toContain('Death intensity')
+  })
+
+  it('instructs a sober death when deathIntensity is sober', () => {
+    const prompt = promptWithCombat(combat({ deathIntensity: 'sober' }))
+
+    expect(prompt).toContain('FELL and DIED')
+    expect(prompt).toContain('Death intensity: SOBER')
+    expect(prompt).toContain('without gratuitous gore')
+  })
+
+  it('instructs a brutal death when deathIntensity is brutal', () => {
+    const prompt = promptWithCombat(combat({ deathIntensity: 'brutal' }))
+
+    expect(prompt).toContain('Death intensity: BRUTAL')
+    expect(prompt).toContain('show the violence plainly')
+  })
+
+  it('instructs an unflinching gore_total death when deathIntensity is gore_total', () => {
+    const prompt = promptWithCombat(combat({ deathIntensity: 'gore_total' }))
+
+    expect(prompt).toContain('Death intensity: GORE TOTAL')
+    expect(prompt).toContain('Do not cut away')
+  })
+
+  it('defaults to a sober death when a dead verdict carries no deathIntensity', () => {
+    // Sessions with no run/contract (no power-gap to compute against) still
+    // need a safe, non-gratuitous default — never an unset instruction.
+    const prompt = promptWithCombat(combat({ deathIntensity: undefined }))
+
+    expect(prompt).toContain('Death intensity: SOBER')
   })
 })

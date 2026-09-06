@@ -343,7 +343,7 @@ describe('advanceRun', () => {
 describe('projectRun', () => {
   it('gives the client everything the turn-back panel needs, computed here', () => {
     const state = descend(descend(runState()))
-    const projection = projectRun(state, { water: 10, food: 10 })
+    const projection = projectRun(state, { water: 10, food: 10 }, [])
 
     expect(projection.currentDepth).toBe(2)
     expect(projection.canDescend).toBe(true)
@@ -358,14 +358,14 @@ describe('projectRun', () => {
     let state = runState(3)
     for (let i = 0; i < 3; i++) state = advanceRun(state)
 
-    const projection = projectRun(state, { water: 0, food: 0 })
+    const projection = projectRun(state, { water: 0, food: 0 }, [])
     expect(projection.canDescend).toBe(false)
     expect(projection.returnEstimate.risk).toBe('critical')
     expect(projection.returnEstimate.suppliesShort).toBe(true)
   })
 
   it('closes descending once the return is engaged', () => {
-    const projection = projectRun(engageReturn(descend(runState())), { water: 10, food: 10 })
+    const projection = projectRun(engageReturn(descend(runState())), { water: 10, food: 10 }, [])
     expect(projection.canDescend).toBe(false)
     expect(projection.mode).toBe('return')
   })
