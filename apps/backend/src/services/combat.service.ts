@@ -30,6 +30,7 @@ import type {
   CombatSnapshot,
   CombatState,
   CreatureId,
+  DamageDice,
   Difficulty,
   FleeDirection,
   RunState,
@@ -180,19 +181,23 @@ export function toCombatStatePersistence(state: CombatState | null): CombatState
 /**
  * The player as the fight sees them, assembled from the character sheet.
  *
- * Armour class is derived from SOUFFLE (`10-COMBAT §4`); the inventory does not
- * yet carry an armour rating, so an equipment bonus on top of this base is
- * future work rather than something to guess at here.
+ * Armour class is the non-linear SOUFFLE base plus the worn armour's bonus
+ * (`10-COMBAT §4`): the SOUFFLE half is always the character's own attribute,
+ * and the armour half comes from whatever is equipped in the `armor` slot,
+ * resolved against the closed catalogue in `@grimoire/shared` — never from the
+ * item's display name or an AI-supplied field. An unrecognised or missing
+ * armour name falls back to tier 0 (no bonus), not a guess.
  */
 function toCombatPlayer(
   attributes: Attributes,
   survival: SurvivalStats,
-  conditions: readonly ActiveCondition[]
+  conditions: readonly ActiveCondition[],
+  armourBonus: number
 ): CombatState['player'] {
   return {
     hp: survival.hp,
     maxHp: survival.maxHp,
-    armourClass: armourClassFromBreath(attributes.breath),
+    armourClass: armourClassFromBreath(attributes.breath, armourBonus),
     attributes,
     conditions: [...conditions],
     combatConditions: [],
@@ -227,6 +232,8 @@ export interface OpenCombatInput {
   attributes: Attributes
   survival: SurvivalStats
   conditions: readonly ActiveCondition[]
+  /** CA bonus from the equipped armour, resolved by the caller from inventory. */
+  armourBonus: number
   rng?: () => number
 }
 
@@ -257,7 +264,7 @@ export interface OpenCombatInput {
  * @see docs/canon/03-BESTIARY.md §6bis
  */
 export function openCombatFromEncounter(input: OpenCombatInput): CombatState | null {
-  const { encounter, run, attributes, survival, conditions } = input
+  const { encounter, run, attributes, survival, conditions, armourBonus } = input
 
   // A character already on the ground cannot be pulled into a new fight: the
   // reprieve canon grants them is a turn to act, not a turn to be killed in.
@@ -272,7 +279,7 @@ export function openCombatFromEncounter(input: OpenCombatInput): CombatState | n
 
   return startCombat({
     id: randomUUID(),
-    player: toCombatPlayer(attributes, survival, conditions),
+    player: toCombatPlayer(attributes, survival, conditions, armourBonus),
     enemies,
     // An ambush is what canon calls a fight the player had no chance to
     // defuse (§1). Mechanically that is the enemy camp acting first, which is
@@ -341,6 +348,8 @@ export interface CombatTurnInput {
   fleeDirection?: FleeDirection
   itemHealing?: number
   allyKind?: 'human' | 'beast'
+  /** The equipped weapon's die, resolved by the caller from inventory. */
+  weapon?: DamageDice
   rng?: () => number
 }
 
@@ -375,6 +384,7 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
     fleeDirection: input.fleeDirection,
     itemHealing: input.itemHealing,
     allyKind: input.allyKind,
+    weapon: input.weapon,
     rng,
   })
 
@@ -404,6 +414,10 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
       action: input.action,
       targetId: input.targetId,
       allyKind: input.allyKind,
+      // The second swing is the same swing: it uses the equipped weapon, not
+      // the fists default. Omitting this would have a fast character's bonus
+      // attack land for 1d4 while their first landed for 1d12.
+      weapon: input.weapon,
       rng,
     })
     state = {

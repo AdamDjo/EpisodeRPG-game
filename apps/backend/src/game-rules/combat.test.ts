@@ -1,4 +1,10 @@
-import { attributeModifier } from '@grimoire/shared'
+import {
+  ARMOUR_CATALOGUE,
+  armourBonusForItemName,
+  attributeModifier,
+  WEAPON_CATALOGUE,
+  weaponDamageForItemName,
+} from '@grimoire/shared'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -123,6 +129,74 @@ describe('rollDamage', () => {
 
   it('never returns a negative amount', () => {
     expect(rollDamage({ count: 1, faces: 4, bonus: -10 }, scriptedRng([faceOf(1, 4)]))).toBe(0)
+  })
+})
+
+describe('armourClassFromBreath (§4)', () => {
+  it('is the SOUFFLE base when no armour is worn', () => {
+    // SOUFFLE 12 → mod +1 → base 13 on the non-linear table (#265).
+    expect(armourClassFromBreath(12, 0)).toBe(13)
+  })
+
+  it('adds the armour bonus on top of the SOUFFLE base', () => {
+    // The bonus stacks on the table, it does not flatten it back to 10 + mod.
+    expect(armourClassFromBreath(12, 3)).toBe(16)
+  })
+
+  it('defaults the armour bonus to zero, matching the bare SOUFFLE base', () => {
+    expect(armourClassFromBreath(14)).toBe(armourClassFromBreath(14, 0))
+  })
+
+  it('produces four distinct CA values across the four armour tiers', () => {
+    expect(ARMOUR_CATALOGUE.Cuir?.tier).toBe(1)
+    expect(ARMOUR_CATALOGUE.Plate?.tier).toBe(2)
+    expect(ARMOUR_CATALOGUE['Soie archontique']?.tier).toBe(3)
+
+    const breath = 12
+    const noArmour = armourClassFromBreath(breath, armourBonusForItemName(undefined))
+    const leather = armourClassFromBreath(breath, armourBonusForItemName('Cuir'))
+    const plate = armourClassFromBreath(breath, armourBonusForItemName('Plate'))
+    const archon = armourClassFromBreath(breath, armourBonusForItemName('Soie archontique'))
+
+    // Canon tier bonuses (11-INVENTORY-ECONOMY §4) aren't strictly monotonic —
+    // tier 3 trades raw CA for other benefits — so this only proves each tier
+    // resolves to its own distinct, correctly-looked-up bonus.
+    expect(noArmour).toBeLessThan(leather)
+    expect(leather).toBeLessThan(archon)
+    expect(archon).toBeLessThan(plate)
+    expect(new Set([noArmour, leather, plate, archon]).size).toBe(4)
+  })
+
+  it('falls back to tier 0 (no bonus) for an unrecognised armour name', () => {
+    expect(armourBonusForItemName('Armure inventée')).toBe(0)
+  })
+})
+
+describe('weaponDamageForItemName tiers (11-INVENTORY-ECONOMY §4)', () => {
+  it('falls back to fists when nothing is equipped or the name is unknown', () => {
+    expect(weaponDamageForItemName(undefined)).toEqual({ count: 1, faces: 4, bonus: 0 })
+    expect(weaponDamageForItemName('Arme inventée')).toEqual({ count: 1, faces: 4, bonus: 0 })
+  })
+
+  it('produces four distinct damage profiles across weapon tiers 0-3', () => {
+    const fists = weaponDamageForItemName(undefined)
+    const epeeCourte = weaponDamageForItemName('Épée courte')
+    const sabre = weaponDamageForItemName('Sabre')
+    const archontique = weaponDamageForItemName('Arme archontique')
+
+    expect(WEAPON_CATALOGUE['Épée courte']?.tier).toBe(1)
+    expect(WEAPON_CATALOGUE.Sabre?.tier).toBe(2)
+    expect(WEAPON_CATALOGUE['Arme archontique']?.tier).toBe(3)
+
+    const profiles = [fists, epeeCourte, sabre, archontique].map(
+      (d) => `${d.count}d${d.faces}+${d.bonus}`
+    )
+    expect(new Set(profiles).size).toBe(4)
+
+    const rng = () => 0.99 // maximum face every roll
+    const maxima = [fists, epeeCourte, sabre, archontique].map((d) => rollDamage(d, rng))
+    expect(maxima).toEqual([...maxima].sort((a, b) => a - b))
+    expect(new Set(maxima).size).toBe(4)
   })
 })
 

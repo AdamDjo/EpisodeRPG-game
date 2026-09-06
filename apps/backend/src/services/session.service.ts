@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 import {
   type ActiveCondition,
+  armourBonusForItemName,
   type Attributes,
   type Choice,
   type CombatAction,
@@ -21,10 +22,12 @@ import {
   type SceneResponse,
   type SessionEndReason,
   type SurvivalStats,
+  weaponDamageForItemName,
 } from '@grimoire/shared'
 
 import { generateScene } from '../ai/game-master.service'
 import { persistedChoicesSchema } from '../ai/scene-validator'
+import { armourClassFromBreath } from '../game-rules/combat'
 import {
   applyAiCondition,
   applyCalamineDelta,
@@ -537,13 +540,31 @@ async function resolveCombatTurnForSession(
   // rule on the real HP — rather than dying twice over in the same turn.
   const upkeep = applyTurnUpkeep(survival, input.combatRng)
 
+  // Gear is re-read every turn, never frozen at the fight's opening: canon has
+  // the player feel a new armour straight away (10-COMBAT §4), and swapping a
+  // weapon mid-fight has to bite on the very next swing. Both sides go through
+  // the closed catalogue, so an unknown name falls back to tier 0 rather than
+  // being guessed at.
+  const equippedWeapon = inventory.find((item) => item.equippedSlot === 'main-hand')
+  const weapon = weaponDamageForItemName(equippedWeapon?.name)
+  const armourBonus = armourBonusForItemName(
+    inventory.find((item) => item.equippedSlot === 'armor')?.name
+  )
+
   const turn = resolveCombatTurn({
-    state,
+    state: {
+      ...state,
+      player: {
+        ...state.player,
+        armourClass: armourClassFromBreath(state.player.attributes.breath, armourBonus),
+      },
+    },
     survival: upkeep.survival,
     action: translated.action,
     targetId: input.targetId,
     fleeDirection: input.fleeDirection ?? translated.fleeDirection,
     allyKind: 'human',
+    weapon,
     rng: input.combatRng,
   })
 
@@ -816,6 +837,9 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
           attributes,
           survival: restedSurvival,
           conditions: finalConditions,
+          armourBonus: armourBonusForItemName(
+            finalInventory.find((item) => item.equippedSlot === 'armor')?.name
+          ),
           rng: input.combatRng,
         })
       : null

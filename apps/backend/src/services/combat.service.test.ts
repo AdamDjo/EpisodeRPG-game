@@ -370,6 +370,7 @@ describe('opening a fight from what the AI narrated (§1)', () => {
       attributes: { blood: 14, breath: 12, will: 10 },
       survival: makeSurvival(),
       conditions: [],
+      armourBonus: 1,
       rng: () => 0.5,
       ...input,
     })

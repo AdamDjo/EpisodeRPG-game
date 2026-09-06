@@ -236,6 +236,57 @@ describe('routing a turn into the fight', () => {
 
     expect(resolveChoice).toHaveBeenCalledTimes(1)
   })
+
+  // §266: armour equipped mid-fight has to bite on the very next exchange —
+  // canon promises the player feels a new armour immediately (10-COMBAT §4),
+  // so the CA cannot stay frozen at whatever it was when the fight opened.
+  it('re-reads the equipped armour into the CA mid-fight', async () => {
+    const armoured = {
+      ...character,
+      inventory: [{ id: 'i1', name: 'Plate', quantity: 1, equippedSlot: 'armor' }],
+    } as unknown as DbCharacter
+
+    const response = await resolveTurn({
+      // The persisted state carries a stale CA from before the armour was worn.
+      session: session(combatState({ activeSide: 'player' })),
+      character: armoured,
+      choice,
+      combatAction: 'attack',
+      combatRng: () => 0.5,
+    })
+
+    // breath 14 → mod +2 → SOUFFLE base 15 (#265 table), Plate → +3: 15 + 3.
+    expect(response.combat?.player.armourClass).toBe(18)
+  })
+
+  // §266: the attack roll's damage die must come from the equipped main-hand
+  // weapon via the closed catalogue, not the fists default, once a fight is
+  // already underway (as opposed to only when it opens).
+  it("rolls the equipped main-hand weapon's die, not fists, mid-fight", async () => {
+    const armed = {
+      ...character,
+      inventory: [{ id: 'i1', name: 'Arme archontique', quantity: 1, equippedSlot: 'main-hand' }],
+    } as unknown as DbCharacter
+
+    const response = await resolveTurn({
+      session: session(combatState({ activeSide: 'player' })),
+      character: armed,
+      choice,
+      combatAction: 'attack',
+      // Maximum roll every time: the attack always hits and the damage die
+      // always lands on its highest face.
+      combatRng: () => 0.99,
+    })
+
+    const lastAttack = [...(response.combat?.log ?? [])]
+      .reverse()
+      .find((entry) => entry.actor === 'player' && entry.action === 'attack' && entry.hit)
+
+    // Arme archontique is 1d12+0 (tier 3); fists are 1d4+0. blood 14 → mod +2.
+    // A max roll with fists could reach at most 4 + 2 = 6, so seeing more than
+    // that proves the bigger die was actually used.
+    expect(lastAttack?.damage).toBeGreaterThan(6)
+  })
 })
 
 describe('feeding the AI a decided fight', () => {
@@ -576,6 +627,40 @@ describe('opening a fight from the scene the AI just wrote (§1)', () => {
     await resolveTurn({ session: sessionOnARun(null), character, choice: walkOn })
 
     expect(sceneLogCreate).toHaveBeenCalledTimes(1)
+  })
+
+  // §266: the fight's opening CA must read the equipped armour from the
+  // character's own inventory through the closed catalogue, not a guess.
+  it('opens the fight with CA raised by the equipped armour (10-COMBAT §4)', async () => {
+    narrates({ creatureIds: ['sand_dog'], reason: 'they were already waiting' })
+    const armoured = {
+      ...character,
+      inventory: [{ id: 'i1', name: 'Plate', quantity: 1, equippedSlot: 'armor' }],
+    } as unknown as DbCharacter
+
+    const response = await resolveTurn({
+      session: sessionOnARun(null),
+      character: armoured,
+      choice: walkOn,
+      combatRng: () => 0.5,
+    })
+
+    // breath 14 → mod +2 → SOUFFLE base 15 (#265 table), Plate → +3: 15 + 3 = 18.
+    expect(response.combat?.player.armourClass).toBe(18)
+  })
+
+  it('opens the fight with base CA when nothing is equipped', async () => {
+    narrates({ creatureIds: ['sand_dog'], reason: 'they were already waiting' })
+
+    const response = await resolveTurn({
+      session: sessionOnARun(null),
+      character,
+      choice: walkOn,
+      combatRng: () => 0.5,
+    })
+
+    // breath 14 → mod +2 → SOUFFLE base 15 (#265 table), nothing worn: 15 + 0.
+    expect(response.combat?.player.armourClass).toBe(15)
   })
 })
 
