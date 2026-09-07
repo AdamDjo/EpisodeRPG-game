@@ -12,7 +12,11 @@
  * @see docs/canon/03-BESTIARY.md
  */
 
-import type { ActiveCondition, Attributes } from "./character.types";
+import type {
+  ActiveCondition,
+  Attributes,
+  EmpriseAction,
+} from "./character.types";
 
 /**
  * Danger tiers. `calcined` sits apart from the danger ladder on purpose: a
@@ -233,13 +237,22 @@ export type CombatActionCategory = "attack" | "defend" | "command" | "artefact";
  * What the player actually does on a turn. Wider than the categories above
  * because fleeing and item use end or interrupt a fight rather than being one
  * of its four tactical moves.
- * @see 10-COMBAT.md §3, §7
+ *
+ * `submit_enemy` and `force_awaken_artefact` are the combat-reachable half of
+ * the Emprise charges (#267): the same VOLONTÉ rolls as `command`/
+ * `awaken_artefact` respectively, but spent as a forced action rather than a
+ * skill use, gated by `canForceAction` and paid in a charge plus Calamine
+ * (`game-rules/emprise.ts`) instead of being freely repeatable.
+ * @see 10-COMBAT.md §3, §5, §7
+ * @see 04-ATTRIBUTES.md "Les charges d'Emprise (#267)"
  */
 export type CombatAction =
   | "attack"
   | "defend"
   | "command"
   | "awaken_artefact"
+  | "submit_enemy"
+  | "force_awaken_artefact"
   | "use_item"
   | "flee";
 
@@ -437,6 +450,19 @@ export interface CombatResult {
 }
 
 /**
+ * Emprise state projected alongside a combat snapshot, so the client can show
+ * the Calamine cost of a forcing action — and grey it out at 0 charges —
+ * before the player commits to spending it.
+ * @see docs/canon/11-INVENTORY-ECONOMY.md "le pouvoir est visible avant d'être payé"
+ */
+export interface CombatEmpriseSnapshot {
+  charges: number;
+  maxCharges: number;
+  /** Calamine cost of each action, after the player's WILL resistance. */
+  costs: Record<EmpriseAction, number>;
+}
+
+/**
  * The fight projected to the client alongside every scene — everything the
  * combat interface needs to be drawn without computing a single rule. No AC,
  * no damage and no end condition is recalculated client-side.
@@ -451,6 +477,8 @@ export interface CombatSnapshot {
   log: CombatLogEntry[];
   /** Whether fleeing is offered this turn. Canon says it always is (03 §10). */
   canFlee: boolean;
+  /** Charges and per-action Calamine costs, so the UI can show cost before spend. */
+  emprise: CombatEmpriseSnapshot;
   /** Present once the fight is over, so the client can show the payoff. */
   result?: CombatResult;
 }

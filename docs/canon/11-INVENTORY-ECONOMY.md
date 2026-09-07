@@ -441,6 +441,35 @@ degradation_a_l_heritage: 3
 
 ---
 
+## 5bis. Les charges d'Emprise et la résistance Calamine (#267)
+
+VOLONTÉ n'est pas qu'un attribut de dialogue : sa réserve mécanique, l'**Emprise**, permet de
+**forcer le monde** au lieu de le négocier. Table complète, dérivation du modificateur et les 4
+actions couvertes : `04-ATTRIBUTES.md` § « Les charges d'Emprise ».
+
+### La résistance Calamine réduit le prix, jamais le principe
+
+Dépenser une charge d'Emprise coûte de la Calamine, exactement comme activer un artefact (§5). La
+**résistance Calamine** (dérivée du modificateur de VOLONTÉ, même table que les charges) réduit ce
+coût sans jamais l'annuler : une VOLONTÉ élevée rend l'Emprise moins cher à exercer, elle ne la
+rend jamais gratuite. Le garde-fou de calibrage du §5 s'applique à l'identique : forcer le monde
+doit rester un recours, pas la solution par défaut.
+
+### Le principe 11 s'applique aussi à l'Emprise
+
+Comme pour un artefact, le coût en Calamine d'une dépense de charge (après résistance) est
+**toujours visible avant validation** — jamais découvert après coup. Une charge à 0 rend l'action
+correspondante indisponible ; elle ne doit jamais être proposée par l'IA.
+
+### Rechargement au feu de camp
+
+Un repos au feu (`06-SURVIVAL.md` §4) recharge les charges d'Emprise au maximum du personnage.
+Cela n'a aucun effet sur le coût Calamine du repos lui-même, déjà fixé à −10 et indépendant de
+cette mécanique : recharger l'Emprise est additif, pas un second prix ou un second gain de
+Calamine.
+
+---
+
 ## 6. La banque de L'Aveugle (optionnel)
 
 Le joueur peut **déposer** de l'or à l'auberge **avant** de partir en run.

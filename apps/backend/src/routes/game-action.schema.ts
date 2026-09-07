@@ -42,7 +42,16 @@ export const gameActionSchema = z.object({
    * @see docs/canon/10-COMBAT.md §3
    */
   combatAction: z
-    .enum(['attack', 'defend', 'flee', 'command', 'use_item', 'awaken_artefact'])
+    .enum([
+      'attack',
+      'defend',
+      'flee',
+      'command',
+      'use_item',
+      'awaken_artefact',
+      'submit_enemy',
+      'force_awaken_artefact',
+    ])
     .optional(),
   /** Which enemy the action is aimed at. The engine falls back to the first one standing. */
   targetId: z.string().min(1).max(64).optional(),

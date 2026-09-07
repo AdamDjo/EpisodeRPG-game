@@ -72,6 +72,7 @@ function makeSurvival(overrides: Partial<SurvivalStats> = {}): SurvivalStats {
     calamine: 0,
     isDying: false,
     neglectStreak: 0,
+    empriseCharges: 0,
     ...overrides,
   }
 }
@@ -469,7 +470,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const soldier = instantiateEnemy('soldier', 'e1')
     const result = resolvePlayerTurn({
       state: makeState({ enemies: [soldier] }),
-      action: 'command',
+      action: 'submit_enemy',
       // Enemy face 2, then the player's face 19.
       rng: scriptedRng([faceOf(2), faceOf(19)]),
     })
@@ -483,7 +484,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const civilian = instantiateEnemy('civilian', 'e1')
     const result = resolvePlayerTurn({
       state: makeState({ enemies: [civilian] }),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(2), faceOf(19)]),
     })
     expect(result.state.enemies[0].isAlive).toBe(false)
@@ -494,7 +495,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const enemies = [instantiateEnemy('soldier', 'e1'), instantiateEnemy('soldier', 'e2')]
     const result = resolvePlayerTurn({
       state: makeState({ enemies }),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(1), faceOf(20)]),
     })
     const shaken = result.state.enemies.filter((e) => e.combatConditions.includes('frightened'))
@@ -505,7 +506,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const watcher = instantiateEnemy('watcher', 'e1')
     const result = resolvePlayerTurn({
       state: makeState({ enemies: [watcher] }),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(1), faceOf(20)]),
     })
     expect(result.state.enemies[0].combatConditions).not.toContain('frightened')
@@ -515,7 +516,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
   it('galvanises the camp on a critical failure', () => {
     const result = resolvePlayerTurn({
       state: makeState(),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(10), faceOf(1)]),
     })
     expect(result.state.galvanised).toBe(true)

@@ -111,6 +111,17 @@ calcined`. L'ancien `inn` confondait « rentré avec l'objectif » (payé) et «
 - **Le crescendo de danger n'a aucun état persisté** — `buildDangerCrescendoSection` s'appuie sur
   l'état mécanique réel transmis (ratio PV, palier de Calamine, conditions, mourant). Aucun état
   d'acte/chapitre serveur, explicitement hors scope. #185
+- **Charges d'Emprise dérivées de VOLONTÉ, jamais stockées comme un max** — `maxEmpriseCharges` et
+  `calamineResistance` recalculent depuis le modificateur à chaque usage (`game-rules/emprise.ts`) ;
+  seul `empriseCharges` (le compteur courant) est persisté. Le rechargement au feu de camp restaure
+  au max sans jamais toucher à la Calamine — coût distinct du -10 Calamine du repos au feu lui-même.
+  Canon `04-ATTRIBUTES.md` "Les charges d'Emprise". #267
+- **`break_deadlock` revalidé côté serveur indépendamment du prompt** — le system-prompt masque déjà
+  l'option sous 1 charge (`buildDeadlockSection`), mais `session.service.ts` rappelle
+  `canForceAction` avant d'appliquer quoi que ce soit : un modèle qui halluciderait le champ à 0
+  charge se voit silencieusement ignoré (pas de charge dépensée, pas de coût Calamine). Le coût
+  passe toujours par `attributeModifier(will)` avant `empriseSpendCost`, jamais l'attribut brut —
+  même convention que `combat.service.ts`. #267
 
 ### Images de scène — révision v0.2.1
 

@@ -85,11 +85,64 @@ tooltip : "Charisme, foi, commandement, résistance magique.
 >    attribut « surnaturel » séparé faisait doublon.
 >
 > **VOLONTÉ = la réserve** (combien de fois tu peux forcer le monde). **Calamine = le prix** (ce que
-> ça laisse dans la chair). Deux faces d'une même mécanique, jamais deux systèmes. Les charges
-> d'Emprise qui donnent son effet mécanique à la réserve arrivent en #267.
+> ça laisse dans la chair). Deux faces d'une même mécanique, jamais deux systèmes.
 >
 > La Cendre du **lore** n'est pas renommée : le monde, le peuple Cendreur et le coût des artefacts
 > gardent leur nom.
+
+---
+
+### Les charges d'Emprise (#267)
+
+**Emprise** est la réserve mécanique de VOLONTÉ : le nombre de fois par run où le joueur peut
+**forcer le monde** au lieu de le négocier ou de le subir. Quatre actions sont couvertes, jamais
+plus sans révision de ce document :
+
+- **Soumettre un ennemi sans combat** (reddition forcée par la seule présence)
+- **Commander un allié** (ordre qui prime sur son comportement par défaut, `command` en combat)
+- **Éveiller un artefact** (`awaken_artefact`, distinct de l'usage normal d'un pouvoir)
+- **Briser une impasse narrative** (déblocage de scène quand aucune autre voie n'existe)
+
+**Table des charges**, dérivée du modificateur de VOLONTÉ (§2) :
+
+| Modificateur VOLONTÉ | Charges d'Emprise |
+| -------------------- | ----------------- |
+| −3, −2               | 0                 |
+| −1                   | 0                 |
+| 0                    | 1                 |
+| +1                   | 2                 |
+| +2                   | 3                 |
+| +3                   | 4                 |
+| +4                   | 5                 |
+
+🟢 _Les modificateurs −3 et −2 n'existent pas à la génération (plage 6–16, §2) : ils ne peuvent
+survenir qu'en cours de run, via une dégradation temporaire (Calamine haute, blessure, malédiction).
+Aucune table n'a jamais prévu de charge négative — la mécanique clampe simplement à 0, au même
+titre que −1._
+
+**Résistance Calamine**, dérivée du même modificateur, en points de réduction sur le coût en
+Calamine d'une dépense de charge (voir `11-INVENTORY-ECONOMY.md` §5) :
+
+| Modificateur VOLONTÉ | Résistance Calamine |
+| -------------------- | ------------------- |
+| −3, −2, −1           | 0                   |
+| 0                    | 1                   |
+| +1                   | 2                   |
+| +2                   | 3                   |
+| +3                   | 4                   |
+| +4                   | 5                   |
+
+**Rechargement** : un repos au feu de camp (`REST_RATES.fire`, `06-SURVIVAL.md` §4) recharge les
+charges d'Emprise au maximum du personnage. Cela n'affecte en rien le coût Calamine du repos
+lui-même (déjà fixé à −10, indépendant de cette mécanique) : recharger l'Emprise ne coûte et ne
+rapporte aucune Calamine en soi, c'est un effet additif sur un rest qui a déjà son propre coût.
+
+**Garde-fous** :
+
+- Le coût en Calamine d'une dépense de charge est **toujours visible avant validation** (principe
+  11, `11-INVENTORY-ECONOMY.md` §5 : « le pouvoir est visible avant d'être payé »).
+- À 0 charge, l'action forcée est **indisponible** : elle ne doit jamais apparaître dans les choix
+  proposés par l'IA (validation de sortie, comme pour les IDs de condition).
 
 ---
 

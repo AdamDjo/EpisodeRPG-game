@@ -1,11 +1,13 @@
 import {
   type Attributes,
   type ShiftedSkill,
+  attributeModifier,
   getPeople,
   getVocation,
   maxHpFromBlood,
 } from '@grimoire/shared'
 
+import { maxEmpriseCharges } from '../game-rules/emprise'
 import { Prisma } from '../generated/prisma/client'
 import { prisma } from '../lib/prisma'
 
@@ -85,6 +87,7 @@ export async function createCharacter(
         hunger: 100,
         energy: 100,
         calamine: 0,
+        empriseCharges: maxEmpriseCharges(attributeModifier(attributes.will)),
         activeConditions: [],
       },
     })

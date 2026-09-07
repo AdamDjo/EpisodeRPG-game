@@ -286,6 +286,36 @@ function buildRestSection(): string[] {
 }
 
 /**
+ * Builds the break_deadlock section (#267): tells the AI it may signal a
+ * forced Emprise resolution when no other narrative path exists, but only
+ * while the character actually has a charge to spend. Omitted entirely at 0
+ * charges — canon is explicit that the forced action "ne doit jamais
+ * apparaître dans les choix proposés par l'IA" (04-ATTRIBUTES.md
+ * "Garde-fous"), so the safest way to honour that is to never mention the
+ * option at all rather than trust the model to self-censor. The backend
+ * still re-checks `canForceAction` independently before spending anything —
+ * this section only shapes when the AI is even invited to try.
+ * @see docs/canon/04-ATTRIBUTES.md "Les charges d'Emprise"
+ * @see docs/canon/11-INVENTORY-ECONOMY.md §5bis
+ */
+function buildDeadlockSection(character: Character): string[] {
+  if (character.stats.survival.empriseCharges <= 0) return []
+
+  return [
+    '',
+    'Breaking a deadlock (break_deadlock):',
+    '- The character has at least one Emprise charge left: reserve willpower they',
+    '  can spend to force the world when no other path exists — submitting a foe',
+    '  without a fight, overriding an ally, waking an artefact, or breaking open a',
+    '  scene that has genuinely run out of options.',
+    '- Only propose break_deadlock when the narrative has truly cornered the',
+    "  player — never as a shortcut around a choice they haven't earned or lost.",
+    '- Give a short reason for why this moment calls for it. Never state a charge',
+    '  count or a Calamine cost yourself — the backend applies and displays those.',
+  ]
+}
+
+/**
  * Builds the physical-danger crescendo section (#185): pushes the AI to keep
  * offering regular physical pivots (combat, flee, a rescue/save decision) and
  * to let stakes climb from the character's REAL mechanical state (HP ratio,
@@ -586,6 +616,7 @@ export function buildSystemPrompt(
     ...buildConditionsSection(character, locale),
     ...buildInventorySection(character),
     ...buildRestSection(),
+    ...buildDeadlockSection(character),
     ...buildDangerCrescendoSection(character),
     ...buildRunSection(run),
     ...buildEncounterSection(run, combat !== null),

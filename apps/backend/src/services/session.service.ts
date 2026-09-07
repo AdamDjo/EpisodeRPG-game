@@ -17,6 +17,7 @@ import {
   type InventoryItemRef,
   type Locale,
   type PersistedInventoryItem,
+  attributeModifier,
   resolveLocale,
   type RunState,
   type SceneResponse,
@@ -35,6 +36,13 @@ import {
   isValidAiConditionId,
 } from '../game-rules/conditions'
 import { resolveChoice } from '../game-rules/consequences'
+import {
+  canForceAction,
+  EMPRISE_BASE_CALAMINE_COST,
+  empriseSpendCost,
+  maxEmpriseCharges,
+  spendEmpriseCharge,
+} from '../game-rules/emprise'
 import { acquireItem, equipItem, unequipItem, useItem } from '../game-rules/inventory'
 import { projectPowerGap } from '../game-rules/power-balance'
 import { applyRest } from '../game-rules/rest'
@@ -120,6 +128,7 @@ function readCharacter(character: DbCharacter): {
       calamine: character.calamine,
       isDying: character.isDying,
       neglectStreak: character.neglectStreak,
+      empriseCharges: character.empriseCharges,
     },
     activeConditions: character.activeConditions as unknown as ActiveCondition[],
     inventory: character.inventory as unknown as PersistedInventoryItem[],
@@ -156,6 +165,7 @@ function toStatsRecord(survival: SurvivalStats): Record<string, number> {
     hunger: survival.hunger,
     energy: survival.energy,
     calamine: survival.calamine,
+    empriseCharges: survival.empriseCharges,
   }
 }
 
@@ -237,6 +247,7 @@ export async function getOrCreateSession(
         hunger: 100,
         energy: 100,
         calamine: 0,
+        empriseCharges: maxEmpriseCharges(attributeModifier(seed.attributes.will)),
         activeConditions: [],
       },
     })
@@ -647,6 +658,7 @@ async function resolveCombatTurnForSession(
         calamine: turn.survival.calamine,
         isDying: turn.survival.isDying,
         neglectStreak: turn.survival.neglectStreak,
+        empriseCharges: turn.survival.empriseCharges,
         // Gold is paid on the same write that clears the fight, so a reload can
         // never bank the same corpses twice.
         ...(goldGained > 0 ? { gold: { increment: goldGained } } : {}),
@@ -686,7 +698,7 @@ async function resolveCombatTurnForSession(
     updatedInventory: toInventoryRefs(inventory),
     notifications: [],
     source: gm.source,
-    combat: projectCombatState(turn.state, turn.result),
+    combat: projectCombatState(turn.state, turn.survival, turn.result),
     ...(run ? { run: projectRun(run.next, countCarriedSupplies(inventory), inventory) } : {}),
   }
 }
@@ -804,15 +816,40 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
   const restedSurvival =
     !gameOver && restProposal && (restProposal.type === 'short' || restProposal.type === 'fire')
       ? clearDyingOnHeal(
-          applyRest(restProposal.type, finalSurvival, finalInventory, attributes.blood, {
-            // Read from the bag, never assumed (#249): a character who carries
-            // no water and no food recovers no hunger/thirst at the fire. The
-            // stock is the one the Comptoir sells into, so leaving without
-            // supplies now actually costs something (canon 06-SURVIVAL §3).
-            hasProvisions: hasProvisionsInBag(finalInventory),
-          }).survival
+          applyRest(
+            restProposal.type,
+            finalSurvival,
+            finalInventory,
+            attributes.blood,
+            attributes.will,
+            {
+              // Read from the bag, never assumed (#249): a character who carries
+              // no water and no food recovers no hunger/thirst at the fire. The
+              // stock is the one the Comptoir sells into, so leaving without
+              // supplies now actually costs something (canon 06-SURVIVAL §3).
+              hasProvisions: hasProvisionsInBag(finalInventory),
+            }
+          ).survival
         )
       : finalSurvival
+
+  // The AI may signal a forced Emprise resolution via break_deadlock (#267).
+  // canForceAction is re-checked here independently of the AI's own belief —
+  // the prompt already omits the option below 1 charge (system-prompt.ts),
+  // but a model can still hallucinate the field, so at 0 charges the proposal
+  // is silently dropped: no charge spent, no Calamine cost applied.
+  // @see docs/canon/04-ATTRIBUTES.md "Les charges d'Emprise" §"Garde-fous"
+  const deadlockProposal = gm.scene.break_deadlock
+  const forcedSurvival =
+    !gameOver && deadlockProposal && canForceAction(restedSurvival)
+      ? spendEmpriseCharge(
+          restedSurvival,
+          empriseSpendCost(
+            EMPRISE_BASE_CALAMINE_COST.break_deadlock,
+            attributeModifier(attributes.will)
+          )
+        )
+      : restedSurvival
 
   const scene = assembleScene({
     payload: gm.scene,
@@ -843,7 +880,7 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
           encounter: gm.scene.combat_encounter,
           run: run?.next ?? null,
           attributes,
-          survival: restedSurvival,
+          survival: forcedSurvival,
           conditions: finalConditions,
           armourBonus: armourBonusForItemName(
             finalInventory.find((item) => item.equippedSlot === 'armor')?.name
@@ -891,13 +928,14 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
     prisma.character.update({
       where: { id: character.id },
       data: {
-        hp: restedSurvival.hp,
-        thirst: restedSurvival.thirst,
-        hunger: restedSurvival.hunger,
-        energy: restedSurvival.energy,
-        calamine: restedSurvival.calamine,
-        isDying: restedSurvival.isDying,
-        neglectStreak: restedSurvival.neglectStreak,
+        hp: forcedSurvival.hp,
+        thirst: forcedSurvival.thirst,
+        hunger: forcedSurvival.hunger,
+        energy: forcedSurvival.energy,
+        calamine: forcedSurvival.calamine,
+        isDying: forcedSurvival.isDying,
+        neglectStreak: forcedSurvival.neglectStreak,
+        empriseCharges: forcedSurvival.empriseCharges,
         activeConditions: finalConditions as unknown as object,
         inventory: finalInventory as unknown as object,
         ...(rewardGold > 0 ? { gold: { increment: rewardGold } } : {}),
@@ -930,7 +968,7 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
         await compressScene(
           session.id,
           recentTurns,
-          toGmCharacter(character, attributes, restedSurvival, finalConditions, finalInventory),
+          toGmCharacter(character, attributes, forcedSurvival, finalConditions, finalInventory),
           scene.location,
           run?.next.currentDepth ?? 0
         )
@@ -972,15 +1010,15 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
     ...(endReason ? { endReason } : {}),
     gold: character.gold + rewardGold,
     scene,
-    survival: restedSurvival,
-    updatedStats: toStatsRecord(restedSurvival),
+    survival: forcedSurvival,
+    updatedStats: toStatsRecord(forcedSurvival),
     updatedInventory: toInventoryRefs(finalInventory),
     notifications: [],
     diceRoll: resolution.diceRoll,
     source: gm.source,
     // The client learns it is now in a fight from the same response that
     // narrated the pivot — it never has to poll or infer it from the prose.
-    ...(openedCombat ? { combat: projectCombatState(openedCombat) } : {}),
+    ...(openedCombat ? { combat: projectCombatState(openedCombat, forcedSurvival) } : {}),
     // Projected from the inventory as it stands *after* the turn, so the panel
     // the player reads before deciding to descend reflects what they actually
     // carry now.
@@ -1044,6 +1082,7 @@ export async function performInventoryAction(
       calamine: finalSurvival.calamine,
       isDying: finalSurvival.isDying,
       neglectStreak: finalSurvival.neglectStreak,
+      empriseCharges: finalSurvival.empriseCharges,
       activeConditions: result.conditions as unknown as object,
       inventory: result.items as unknown as object,
     },

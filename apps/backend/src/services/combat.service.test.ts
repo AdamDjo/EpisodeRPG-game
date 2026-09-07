@@ -45,6 +45,7 @@ function makeSurvival(overrides: Partial<SurvivalStats> = {}): SurvivalStats {
     calamine: 0,
     isDying: false,
     neglectStreak: 0,
+    empriseCharges: 0,
     ...overrides,
   }
 }
@@ -478,12 +479,12 @@ describe('opening a fight from what the AI narrated (§1)', () => {
 
 describe('projecting to the client', () => {
   it('always offers the escape hatch', () => {
-    expect(projectCombatState(makeState()).canFlee).toBe(true)
+    expect(projectCombatState(makeState(), makeSurvival()).canFlee).toBe(true)
   })
 
   it('projects the fight without asking the client to recompute a rule', () => {
     const state = makeState({ round: 3, activeSide: 'enemy' })
-    const snapshot = projectCombatState(state)
+    const snapshot = projectCombatState(state, makeSurvival())
     expect(snapshot.round).toBe(3)
     expect(snapshot.activeSide).toBe('enemy')
     expect(snapshot.result).toBeUndefined()

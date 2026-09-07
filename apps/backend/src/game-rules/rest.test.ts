@@ -13,6 +13,7 @@ const full = (overrides: Partial<SurvivalStats> = {}): SurvivalStats => ({
   calamine: 30,
   isDying: false,
   neglectStreak: 0,
+  empriseCharges: 0,
   ...overrides,
 })
 
@@ -41,12 +42,12 @@ describe('hasHealingItem', () => {
 
 describe('applyRest — short', () => {
   it('recovers +20 energy', () => {
-    const result = applyRest('short', full({ energy: 40 }), [], 10, { hasProvisions: true })
+    const result = applyRest('short', full({ energy: 40 }), [], 10, 10, { hasProvisions: true })
     expect(result.survival.energy).toBe(60)
   })
 
   it('does not restore hunger or thirst', () => {
-    const result = applyRest('short', full({ hunger: 40, thirst: 40 }), [], 10, {
+    const result = applyRest('short', full({ hunger: 40, thirst: 40 }), [], 10, 10, {
       hasProvisions: true,
     })
     expect(result.survival.hunger).toBe(40)
@@ -54,13 +55,13 @@ describe('applyRest — short', () => {
   })
 
   it('does not change calamine', () => {
-    const result = applyRest('short', full({ calamine: 30 }), [], 10, { hasProvisions: true })
+    const result = applyRest('short', full({ calamine: 30 }), [], 10, 10, { hasProvisions: true })
     expect(result.survival.calamine).toBe(30)
   })
 
   it('heals 1d4 HP when bandages are carried', () => {
     const rng = () => 0.999 // 1d4 -> 4
-    const result = applyRest('short', full({ hp: 5, maxHp: 12 }), [bandages], 10, {
+    const result = applyRest('short', full({ hp: 5, maxHp: 12 }), [bandages], 10, 10, {
       hasProvisions: true,
       rng,
     })
@@ -69,7 +70,7 @@ describe('applyRest — short', () => {
   })
 
   it('heals nothing without bandages', () => {
-    const result = applyRest('short', full({ hp: 5, maxHp: 12 }), [], 10, {
+    const result = applyRest('short', full({ hp: 5, maxHp: 12 }), [], 10, 10, {
       hasProvisions: true,
       rng: () => 0.999,
     })
@@ -80,7 +81,7 @@ describe('applyRest — short', () => {
 
 describe('applyRest — fire', () => {
   it('recovers +60 energy, hunger and thirst when provisions are available', () => {
-    const result = applyRest('fire', full({ energy: 10, hunger: 10, thirst: 10 }), [], 10, {
+    const result = applyRest('fire', full({ energy: 10, hunger: 10, thirst: 10 }), [], 10, 10, {
       hasProvisions: true,
     })
     expect(result.survival.energy).toBe(70)
@@ -89,7 +90,7 @@ describe('applyRest — fire', () => {
   })
 
   it('still recovers energy but not hunger/thirst without provisions', () => {
-    const result = applyRest('fire', full({ energy: 10, hunger: 10, thirst: 10 }), [], 10, {
+    const result = applyRest('fire', full({ energy: 10, hunger: 10, thirst: 10 }), [], 10, 10, {
       hasProvisions: false,
     })
     expect(result.survival.energy).toBe(70)
@@ -98,14 +99,14 @@ describe('applyRest — fire', () => {
   })
 
   it('applies -10 calamine', () => {
-    const result = applyRest('fire', full({ calamine: 30 }), [], 10, { hasProvisions: true })
+    const result = applyRest('fire', full({ calamine: 30 }), [], 10, 10, { hasProvisions: true })
     expect(result.survival.calamine).toBe(20)
   })
 
   it('heals 1d4 + mod SANG HP when bandages are carried', () => {
     const rng = () => 0 // 1d4 -> 1
     // blood 14 -> attributeModifier +2 (canon table)
-    const result = applyRest('fire', full({ hp: 3, maxHp: 12 }), [bandages], 14, {
+    const result = applyRest('fire', full({ hp: 3, maxHp: 12 }), [bandages], 14, 10, {
       hasProvisions: true,
       rng,
     })
@@ -114,18 +115,35 @@ describe('applyRest — fire', () => {
   })
 
   it('heals nothing without bandages', () => {
-    const result = applyRest('fire', full({ hp: 3, maxHp: 12 }), [], 14, {
+    const result = applyRest('fire', full({ hp: 3, maxHp: 12 }), [], 14, 10, {
       hasProvisions: true,
       rng: () => 0,
     })
     expect(result.healRolled).toBe(0)
     expect(result.survival.hp).toBe(3)
   })
+
+  it('recharges Emprise charges to max on fire rest', () => {
+    // will 14 -> attributeModifier +2 -> maxEmpriseCharges = 3
+    const result = applyRest('fire', full({ empriseCharges: 0 }), [], 10, 14, {
+      hasProvisions: true,
+    })
+    expect(result.survival.empriseCharges).toBe(3)
+  })
+})
+
+describe('applyRest — short does not touch Emprise charges', () => {
+  it('leaves empriseCharges untouched', () => {
+    const result = applyRest('short', full({ empriseCharges: 2 }), [], 10, 14, {
+      hasProvisions: true,
+    })
+    expect(result.survival.empriseCharges).toBe(2)
+  })
 })
 
 describe('applyRest — clamping', () => {
   it('clamps energy, hunger, thirst at 100', () => {
-    const result = applyRest('fire', full({ energy: 90, hunger: 90, thirst: 90 }), [], 10, {
+    const result = applyRest('fire', full({ energy: 90, hunger: 90, thirst: 90 }), [], 10, 10, {
       hasProvisions: true,
     })
     expect(result.survival.energy).toBe(100)
@@ -134,12 +152,12 @@ describe('applyRest — clamping', () => {
   })
 
   it('clamps calamine at 0, never negative', () => {
-    const result = applyRest('fire', full({ calamine: 5 }), [], 10, { hasProvisions: true })
+    const result = applyRest('fire', full({ calamine: 5 }), [], 10, 10, { hasProvisions: true })
     expect(result.survival.calamine).toBe(0)
   })
 
   it('clamps HP at maxHp, never overheals', () => {
-    const result = applyRest('fire', full({ hp: 11, maxHp: 12 }), [bandages], 18, {
+    const result = applyRest('fire', full({ hp: 11, maxHp: 12 }), [bandages], 18, 10, {
       hasProvisions: true,
       rng: () => 0.999, // max roll: 4 + mod(18)=+4 = 8
     })

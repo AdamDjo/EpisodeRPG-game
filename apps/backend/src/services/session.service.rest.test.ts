@@ -144,6 +144,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: false,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -174,6 +175,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: false,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -213,6 +215,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: false,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -243,6 +246,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: false,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -276,6 +280,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: false,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -306,6 +311,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: false,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -333,6 +339,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: true,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -369,6 +376,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: true,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: {},
@@ -408,6 +416,7 @@ describe('resolveTurn — rest_requested (#184)', () => {
         calamine: 30,
         isDying: true,
         neglectStreak: 0,
+        empriseCharges: 0,
       },
       updatedConditions: [],
       consequences: { gameOver: true },
@@ -423,5 +432,131 @@ describe('resolveTurn — rest_requested (#184)', () => {
     const data = lastCharacterUpdateData()
     expect(data.energy).toBe(40)
     expect(lastGameSessionUpdateData()).toMatchObject({ status: 'ended', endReason: 'death' })
+  })
+})
+
+describe('resolveTurn — break_deadlock (#267)', () => {
+  beforeEach(() => {
+    transaction.mockClear()
+    characterUpdate.mockClear()
+    gameSessionUpdate.mockClear()
+    generateChronicle.mockClear()
+
+    assembleScene.mockReturnValue({
+      sceneType: 'exploration',
+      location: 'The Camp',
+      narrative: 'text',
+      choices: [],
+    })
+  })
+
+  it('spends one charge and applies the resisted Calamine cost when proposed with charges available', async () => {
+    resolveChoice.mockReturnValue({
+      updatedSurvival: {
+        hp: 20,
+        maxHp: 20,
+        thirst: 40,
+        hunger: 40,
+        energy: 40,
+        calamine: 30,
+        isDying: false,
+        neglectStreak: 0,
+        empriseCharges: 2,
+      },
+      updatedConditions: [],
+      consequences: {},
+      gameOver: false,
+    })
+    generateScene.mockResolvedValue({
+      scene: { break_deadlock: { reason: 'no other path exists' } },
+      source: 'ai',
+    })
+
+    await resolveTurn({ session: session(3), character, choice })
+
+    // will: 10 -> modifier 0 -> resistance 1 -> base cost 5 - 1 = 4.
+    const data = lastCharacterUpdateData()
+    expect(data.calamine).toBe(34)
+  })
+
+  it('silently drops the proposal — no charge spent, no Calamine change — at 0 charges', async () => {
+    resolveChoice.mockReturnValue({
+      updatedSurvival: {
+        hp: 20,
+        maxHp: 20,
+        thirst: 40,
+        hunger: 40,
+        energy: 40,
+        calamine: 30,
+        isDying: false,
+        neglectStreak: 0,
+        empriseCharges: 0,
+      },
+      updatedConditions: [],
+      consequences: {},
+      gameOver: false,
+    })
+    generateScene.mockResolvedValue({
+      scene: { break_deadlock: { reason: 'no other path exists' } },
+      source: 'ai',
+    })
+
+    await resolveTurn({ session: session(3), character, choice })
+
+    const data = lastCharacterUpdateData()
+    expect(data.calamine).toBe(30)
+  })
+
+  it('does not apply break_deadlock when the turn ends in game over', async () => {
+    resolveChoice.mockReturnValue({
+      updatedSurvival: {
+        hp: 0,
+        maxHp: 20,
+        thirst: 40,
+        hunger: 40,
+        energy: 40,
+        calamine: 30,
+        isDying: true,
+        neglectStreak: 0,
+        empriseCharges: 2,
+      },
+      updatedConditions: [],
+      consequences: { gameOver: true },
+      gameOver: true,
+    })
+    generateScene.mockResolvedValue({
+      scene: { break_deadlock: { reason: 'no other path exists' } },
+      source: 'ai',
+    })
+
+    await resolveTurn({ session: session(3), character, choice })
+
+    const data = lastCharacterUpdateData()
+    expect(data.calamine).toBe(30)
+  })
+
+  it('leaves survival untouched when the AI omits break_deadlock', async () => {
+    resolveChoice.mockReturnValue({
+      updatedSurvival: {
+        hp: 20,
+        maxHp: 20,
+        thirst: 40,
+        hunger: 40,
+        energy: 40,
+        calamine: 30,
+        isDying: false,
+        neglectStreak: 0,
+        empriseCharges: 2,
+      },
+      updatedConditions: [],
+      consequences: {},
+      gameOver: false,
+    })
+    generateScene.mockResolvedValue({ scene: {}, source: 'ai' })
+
+    await resolveTurn({ session: session(3), character, choice })
+
+    const data = lastCharacterUpdateData()
+    expect(data.calamine).toBe(30)
   })
 })

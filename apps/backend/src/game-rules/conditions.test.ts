@@ -23,6 +23,7 @@ const full = (overrides: Partial<SurvivalStats> = {}): SurvivalStats => ({
   calamine: 0,
   isDying: false,
   neglectStreak: 0,
+  empriseCharges: 0,
   ...overrides,
 })
 

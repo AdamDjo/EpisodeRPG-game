@@ -78,6 +78,10 @@ model Character {
   /// neglect Calamine source. Resets once both gauges are back above 0.
   neglectStreak Int @default(0)
 
+  /// Charges d'Emprise actuelles (forcer le monde), dérivées du mod VOLONTÉ.
+  /// @see docs/canon/04-ATTRIBUTES.md "Les charges d'Emprise"
+  empriseCharges Int @default(0)
+
   /// États altérés persistants (ActiveCondition[] JSON), voir @grimoire/shared.
   /// @see docs/canon/06-SURVIVAL.md §2
   activeConditions Json @default("[]")

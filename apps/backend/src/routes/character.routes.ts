@@ -94,6 +94,7 @@ characterRouter.post('/', async (req: Request, res: Response<ApiResponse<Charact
           calamine: character.calamine,
           isDying: character.isDying,
           neglectStreak: character.neglectStreak,
+          empriseCharges: character.empriseCharges,
         },
         conditions: [],
         inventory: [],
