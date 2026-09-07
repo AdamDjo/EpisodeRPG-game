@@ -3,10 +3,14 @@ import { describe, expect, it } from 'vitest'
 
 import {
   advanceTurn,
+  armourClassFromBreath,
   checkCombatEnd,
   derivePlayerConditions,
   endCombat,
+  fleeModeFromBreath,
+  hasBonusAction,
   instantiateEnemy,
+  isRepeatableAsBonusAction,
   projectCombat,
   resolveEnemyTurn,
   resolveKnockout,
@@ -722,6 +726,70 @@ describe('ending a fight (§9)', () => {
   it('carries the flight direction through to the run', () => {
     const state = makeState({ outcome: 'fled', fleeDirection: 'backward' })
     expect(endCombat({ state, rng: () => 0.5 }).fleeDirection).toBe('backward')
+  })
+})
+
+// The SOUFFLE tempo introduced by #265: what a fast character gains defensively
+// (CA), on the way out (flight) and on the clock (the extra action).
+describe('the SOUFFLE tempo (§4, §7, #265)', () => {
+  // The canon table of 10-COMBAT §4, read attribute value by attribute value.
+  // The curve is deliberately non-linear, so each step is pinned rather than
+  // recomputed from a formula the test would merely restate.
+  it('derives the canon armour class from each SOUFFLE modifier', () => {
+    expect(armourClassFromBreath(6)).toBe(10) // mod -1
+    expect(armourClassFromBreath(10)).toBe(11) // mod 0
+    expect(armourClassFromBreath(12)).toBe(13) // mod +1
+    expect(armourClassFromBreath(14)).toBe(15) // mod +2
+    expect(armourClassFromBreath(16)).toBe(16) // mod +3
+    expect(armourClassFromBreath(18)).toBe(17) // mod +4
+  })
+
+  // Below -1 the canon table stops, but the attribute does not: mod -2 and -3
+  // stay clamped on the floor rather than falling through to a lower CA.
+  it('floors the armour class at 10 below the table', () => {
+    expect(armourClassFromBreath(3)).toBe(10) // mod -3
+    expect(armourClassFromBreath(5)).toBe(10) // mod -2
+  })
+
+  it('gives flight advantage at +2 and above, disadvantage at -1 and below', () => {
+    expect(fleeModeFromBreath(6)).toBe('disadvantage') // mod -1
+    expect(fleeModeFromBreath(10)).toBe('normal') // mod 0
+    expect(fleeModeFromBreath(12)).toBe('normal') // mod +1
+    expect(fleeModeFromBreath(14)).toBe('advantage') // mod +2
+    expect(fleeModeFromBreath(18)).toBe('advantage') // mod +4
+  })
+
+  it('grants no extra action below +2, whatever the draw', () => {
+    // rng at 0 is the most favourable draw there is — even it must not pass.
+    expect(hasBonusAction(10, () => 0)).toBe(false) // mod 0
+    expect(hasBonusAction(12, () => 0)).toBe(false) // mod +1
+  })
+
+  // "2 tours sur 3" — the threshold sits exactly at 2/3, so the two draws
+  // bracketing it are what the test pins.
+  it('grants the extra action two rounds out of three at +2', () => {
+    expect(hasBonusAction(14, () => 0.66)).toBe(true)
+    expect(hasBonusAction(14, () => 2 / 3)).toBe(false)
+    expect(hasBonusAction(14, () => 0.99)).toBe(false)
+  })
+
+  it('always grants the extra action at +3 and above', () => {
+    // rng at 0.99 is the least favourable draw — it must not matter here.
+    expect(hasBonusAction(16, () => 0.99)).toBe(true) // mod +3
+    expect(hasBonusAction(18, () => 0.99)).toBe(true) // mod +4
+  })
+
+  // Speed repeats a swing or a shout; it never duplicates a resource. Awakening
+  // an artefact is capped at once per scene (11-INVENTORY-ECONOMY §5), an item
+  // is consumed once, defending would stack its bandage heal, and fleeing has
+  // already resolved in full by the time a second action could run.
+  it('only repeats the actions that are a matter of tempo', () => {
+    expect(isRepeatableAsBonusAction('attack')).toBe(true)
+    expect(isRepeatableAsBonusAction('command')).toBe(true)
+    expect(isRepeatableAsBonusAction('awaken_artefact')).toBe(false)
+    expect(isRepeatableAsBonusAction('use_item')).toBe(false)
+    expect(isRepeatableAsBonusAction('defend')).toBe(false)
+    expect(isRepeatableAsBonusAction('flee')).toBe(false)
   })
 })
 

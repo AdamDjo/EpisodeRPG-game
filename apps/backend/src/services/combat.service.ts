@@ -10,6 +10,7 @@ import {
   endCombat,
   hasBonusAction,
   instantiateEnemy,
+  isRepeatableAsBonusAction,
   projectCombat,
   resolveEnemyTurn,
   resolvePlayerTurn,
@@ -387,19 +388,21 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
 
   // A high-SOUFFLE character strikes twice per exchange (10-COMBAT §4): the
   // bonus action repeats the same intent immediately, before the enemy
-  // answers. `flee` already resolves the whole attempt on its own, so it has
-  // nothing left for a second action to add.
+  // answers. Only actions that are a matter of tempo repeat — see
+  // `isRepeatableAsBonusAction`, which keeps speed from duplicating a
+  // once-per-scene artefact or a consumed item.
   const afterFirstAction = state.outcome ?? checkCombatEnd(state)
   if (
     afterFirstAction === null &&
-    input.action !== 'flee' &&
+    isRepeatableAsBonusAction(input.action) &&
     hasBonusAction(state.player.attributes.breath, rng)
   ) {
+    // No `itemHealing` here: `use_item` is not repeatable, so a bonus action
+    // never has an item to spend.
     const bonusTurn = resolvePlayerTurn({
       state,
       action: input.action,
       targetId: input.targetId,
-      itemHealing: input.itemHealing,
       allyKind: input.allyKind,
       rng,
     })
