@@ -854,13 +854,16 @@ describe('the SOUFFLE tempo (§4, §7, #265)', () => {
     expect(hasBonusAction(18, () => 0.99)).toBe(true) // mod +4
   })
 
-  // Speed repeats a swing or a shout; it never duplicates a resource. Awakening
-  // an artefact is capped at once per scene (11-INVENTORY-ECONOMY §5), an item
-  // is consumed once, defending would stack its bandage heal, and fleeing has
-  // already resolved in full by the time a second action could run.
+  // Speed repeats a swing; it never duplicates a resource. Awakening an artefact
+  // is capped at once per scene (11-INVENTORY-ECONOMY §5), an item is consumed
+  // once, defending would stack its bandage heal, and fleeing has already
+  // resolved in full by the time a second action could run. The Emprise actions
+  // each cost a charge (#267, §5bis), so repeating one would spend it twice.
   it('only repeats the actions that are a matter of tempo', () => {
     expect(isRepeatableAsBonusAction('attack')).toBe(true)
-    expect(isRepeatableAsBonusAction('command')).toBe(true)
+    expect(isRepeatableAsBonusAction('command')).toBe(false)
+    expect(isRepeatableAsBonusAction('submit_enemy')).toBe(false)
+    expect(isRepeatableAsBonusAction('force_awaken_artefact')).toBe(false)
     expect(isRepeatableAsBonusAction('awaken_artefact')).toBe(false)
     expect(isRepeatableAsBonusAction('use_item')).toBe(false)
     expect(isRepeatableAsBonusAction('defend')).toBe(false)

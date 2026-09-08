@@ -67,8 +67,11 @@ describe('empriseSpendCost', () => {
     expect(empriseSpendCost(5, 2)).toBe(2) // resistance(2) = 3
   })
 
-  it('never goes below 0', () => {
-    expect(empriseSpendCost(2, 4)).toBe(0) // resistance(4) = 5
+  // §5bis: resistance "réduit ce coût sans jamais l'annuler". The cheapest canon
+  // action (base 5) against the max resistance (5) must still cost something.
+  it('never goes free, whatever the resistance', () => {
+    expect(empriseSpendCost(5, 4)).toBe(1) // resistance(4) = 5
+    expect(empriseSpendCost(2, 4)).toBe(1)
   })
 
   it('applies no resistance at mod <= -1', () => {

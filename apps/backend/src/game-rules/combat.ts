@@ -220,14 +220,19 @@ export function hasBonusAction(breath: number, rng: () => number): boolean {
 }
 
 /**
- * The actions a bonus action may repeat. Speed lets a fast character strike or
- * shout twice; it does not duplicate a resource. `awaken_artefact` is capped at
+ * The actions a bonus action may repeat. Speed lets a fast character strike
+ * twice; it does not duplicate a resource. `awaken_artefact` is capped at
  * once per scene by canon, `use_item` would consume one item and heal twice,
  * `defend` would stack its bandage heal, and `flee` already resolves the whole
  * attempt in one go — none of them are a matter of tempo.
- * @see 10-COMBAT.md §3, §4, 11-INVENTORY-ECONOMY §5
+ *
+ * `command` was repeatable until Emprise (#267) gave it a price: it now spends
+ * one charge and its Calamine cost, so repeating it would buy two orders for a
+ * single charge — the very resource duplication this list exists to prevent.
+ * The same holds for `submit_enemy` and `force_awaken_artefact`.
+ * @see 10-COMBAT.md §3, §4, 11-INVENTORY-ECONOMY §5, §5bis
  */
-const REPEATABLE_BONUS_ACTIONS: readonly CombatAction[] = ['attack', 'command']
+const REPEATABLE_BONUS_ACTIONS: readonly CombatAction[] = ['attack']
 
 /** Whether SOUFFLE's extra action can legitimately repeat this action. */
 export function isRepeatableAsBonusAction(action: CombatAction): boolean {
