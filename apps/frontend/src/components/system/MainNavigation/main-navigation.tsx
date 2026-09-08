@@ -160,7 +160,7 @@ export function MainNavigation(props: MainNavigationProps) {
           aria-label={isMarketing ? t('siteHome') : t('gameHome')}
         >
           {isMarketing ? (
-            <span className="main-navigation__marketing-logo" aria-hidden="true" />
+            <GameBrand decorative size="sm" variant="lockup" />
           ) : (
             <GameBrand decorative size="sm" variant="lockup" />
           )}
