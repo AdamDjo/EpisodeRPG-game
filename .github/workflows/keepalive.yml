@@ -1,0 +1,32 @@
+name: Keepalive Supabase
+
+# Le plan gratuit met un projet en veille après ~1 semaine sans requête.
+# Un appel tous les 3 jours suffit à réinitialiser ce compteur.
+
+on:
+  schedule:
+    - cron: "0 6 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping REST endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error::Le secret SUPABASE_URL est absent."
+            exit 1
+          fi
+
+          CODE=$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' "$SUPABASE_URL/rest/v1/")
+
+          # 401 = pas de clé API fournie : l'API répond, c'est ce qu'on veut.
+          # Un projet en veille renvoie 5xx ou ne répond pas du tout.
+          case "$CODE" in
+            2*|401|404) echo "Base debout (HTTP $CODE)." ;;
+            *) echo "::error::Base injoignable (HTTP $CODE)."; exit 1 ;;
+          esac
