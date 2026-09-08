@@ -97,6 +97,18 @@ ticket soit livré se lit sur GitHub.
 - CSP de production à revérifier à #161.
 - #129 est **à re-scoper** : les golden paths testés ne décrivent plus le jeu après la refonte.
 
+- **Le backend livre plus vite que le frontend n'expose.** Audit du 2026-09-08 : sur les épics
+  vivants, 11 tickets backend ouverts contre 5 frontend. Des mécaniques entièrement livrées côté
+  serveur restent invisibles au joueur — le palier de progression n'avait aucun composant (#302),
+  l'effet de l'équipement porté n'était restitué nulle part (#303), la succession n'avait pas
+  d'écran (#304). Le réflexe à garder : **une mécanique n'est pas livrée tant qu'un écran ne la
+  montre pas.** Ouvrir le ticket frontend en même temps que le ticket backend, pas après : l'écart
+  ne se voit dans aucun test — tout reste vert pendant qu'une mécanique livrée devient injouable, et
+  il se rattrape mal une fois installé.
+- **Le sas #298 n'est pas un épic de travail.** Il recueille les 8 tickets restés sous l'épic #123,
+  fermé en `NOT_PLANNED` le 2026-08-06 sans que ses enfants soient traités. Chaque ticket en sort
+  par une décision explicite — fermé, ou rattaché à un épic vivant. Ne rien y ajouter.
+
 ## Règles de tenue de ce fichier
 
 - On y écrit **pourquoi**, pas **quoi** ni **quand**. L'avancement vit sur GitHub, la chronologie
