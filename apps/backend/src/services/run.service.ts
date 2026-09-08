@@ -1,3 +1,5 @@
+import { QUEST_INTENSITY_TAG } from '@grimoire/shared'
+
 import { projectPowerGap } from '../game-rules/power-balance'
 import {
   type CarriedSupplies,
@@ -18,12 +20,12 @@ import type { GameSession } from '../generated/prisma/client'
 import type {
   ContractDepth,
   GameMode,
-  PowerGapProjection,
   QuestDanger,
   QuestDuration,
   QuestFamily,
-  ReturnEstimate,
+  QuestIntensity,
   RunContract,
+  RunSnapshot,
   RunState,
   SessionEndReason,
   PersistedInventoryItem,
@@ -115,6 +117,36 @@ function readDuration(value: string | null): QuestDuration {
   return QUEST_DURATIONS.includes(value as QuestDuration) ? (value as QuestDuration) : 'long'
 }
 
+const QUEST_INTENSITIES: readonly QuestIntensity[] = [3, 5, 7]
+
+/**
+ * Reads the persisted intensity, falling back the way the #269 migration did.
+ *
+ * Rows written before the column existed carry their length elsewhere: a
+ * dungeon in its depth, everyone else in their duration tag. Reading it back
+ * from there is a migration concern, not a rule — no engine path may use this
+ * to hand a *new* contract an intensity it was never given.
+ */
+function readIntensity(
+  value: number | null,
+  depth: number | null,
+  duration: QuestDuration
+): QuestIntensity | null {
+  if (QUEST_INTENSITIES.includes(value as QuestIntensity)) return value as QuestIntensity
+  if (QUEST_INTENSITIES.includes(depth as QuestIntensity)) return depth as QuestIntensity
+
+  // A corrupted intensity on a floorless contract still has to resolve to
+  // something: the duration tag is the only length such a row ever carried.
+  return QUEST_DURATION_INTENSITY[duration]
+}
+
+/** The length a legacy floorless contract implied through its duration tag. */
+const QUEST_DURATION_INTENSITY: Record<QuestDuration, QuestIntensity> = {
+  short: 3,
+  long: 5,
+  major: 7,
+}
+
 /**
  * True when the session carries an accepted contract. Sessions created before
  * #228 — and any session still at the inn — have none, and must keep working:
@@ -152,14 +184,18 @@ export function readContract(session: GameSession): RunContract | null {
     return null
   }
 
+  const duration = readDuration(session.contractDuration)
+  const intensity = readIntensity(session.contractIntensity, depth, duration)
+  if (intensity === null) return null
+
   return createContract({
     id: session.contractId!,
     family,
     destination: session.contractDestination!,
     commissioner: session.contractCommissioner ?? UNKNOWN_COMMISSIONER,
     danger: readDanger(session.contractDanger),
-    duration: readDuration(session.contractDuration),
-    ...(depth === null ? {} : { targetDepth: depth }),
+    duration,
+    intensity,
     rewardGold: session.contractRewardGold!,
     objective: session.contractObjective!,
     successCondition: session.contractSuccessCondition ?? session.contractObjective!,
@@ -217,6 +253,8 @@ export interface ContractPersistence {
   contractCommissioner: string
   contractDanger: QuestDanger
   contractDuration: QuestDuration
+  /** Universal unit of length, carried by every family (#269). */
+  contractIntensity: QuestIntensity
   /** Null for every family but `dungeon` — see `RunContract.targetDepth`. */
   contractTargetDepth: ContractDepth | null
   contractRewardGold: number
@@ -234,6 +272,7 @@ export function toContractPersistence(contract: RunContract): ContractPersistenc
     contractCommissioner: contract.commissioner,
     contractDanger: contract.danger,
     contractDuration: contract.duration,
+    contractIntensity: contract.intensity,
     contractTargetDepth: contract.targetDepth ?? null,
     contractRewardGold: contract.rewardGold,
     contractObjective: contract.objective,
@@ -242,43 +281,17 @@ export function toContractPersistence(contract: RunContract): ContractPersistenc
   }
 }
 
-/**
- * The run snapshot projected to the client alongside every scene. The client
- * infers nothing: depth, mode, the estimate and whether descending is still
- * allowed are all decided here (continuity of #186).
- */
-export interface RunProjection {
-  contract: RunContract
-  mode: GameMode
-  currentDepth: number
-  maxDepthReached: number
-  returnEngaged: boolean
-  objectiveSecured: boolean
-  /** Honest cost of getting home from where the player stands. */
-  returnEstimate: ReturnEstimate
-  /** Minutes left for the whole run, descent included. */
-  estimatedRemainingMinutes: number
-  /** Whether "descendre encore" is still a legal move. */
-  canDescend: boolean
-  /** True once the player has climbed back out and the run can be settled. */
-  atSurface: boolean
-  /**
-   * Equipment-vs-danger read-out for this contract, recomputed from the
-   * carried inventory on every scene — not persisted, since it can only ever
-   * change alongside the inventory that feeds it.
-   * @see docs/canon/23-RUN-STRUCTURE.md §2bis
-   */
-  powerGapProjection: PowerGapProjection
-}
-
 /** Builds the client-facing run snapshot from a state and the carried supplies. */
 export function projectRun(
   state: RunState,
   supplies: CarriedSupplies,
   inventory: PersistedInventoryItem[]
-): RunProjection {
+): RunSnapshot {
+  const { intensity, ...clientContract } = state.contract
+
   return {
-    contract: state.contract,
+    contract: clientContract,
+    intensityTag: QUEST_INTENSITY_TAG[intensity],
     mode: state.mode,
     currentDepth: state.currentDepth,
     maxDepthReached: state.maxDepthReached,

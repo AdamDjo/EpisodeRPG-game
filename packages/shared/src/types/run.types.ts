@@ -16,9 +16,10 @@ export type GameMode = "inn" | "exploration" | "combat" | "return";
  * The kinds of work a commissioner puts on the board.
  *
  * Closed on purpose: the engine branches on this, so a family nobody wrote
- * rules for must not typecheck. `dungeon` is the only one that descends —
- * every other family resolves without floors, which is exactly why
- * `RunContract.targetDepth` is optional (#260).
+ * rules for must not typecheck. `dungeon` is the only one that *descends* —
+ * every other family resolves without floors. All of them carry a
+ * `RunContract.intensity` though: the number of stages is universal, only its
+ * fictional dressing (floors, legs, leads) is family-specific (#269).
  * @see 23-RUN-STRUCTURE.md §2
  */
 export type QuestFamily =
@@ -33,10 +34,69 @@ export type QuestFamily =
 /**
  * Contract depth in floors. The 7-floor ceiling is hard: no contract may
  * exceed it, because run length is capped at 2h30 (01-PILLARS §2).
- * Only meaningful for `family: "dungeon"`.
+ *
+ * A dungeon reads its depth off {@link RunContract.intensity} — the two share
+ * one scale on purpose, so a depth is a *view* of the intensity rather than a
+ * second number that could drift from it (#269).
  * @see 23-RUN-STRUCTURE.md §1
  */
 export type ContractDepth = 3 | 5 | 7;
+
+/**
+ * How much work a contract holds, on the shared 3-7 scale — the universal unit
+ * of *length*, not of difficulty.
+ *
+ * Every family carries one; only the fiction that dresses it changes. A
+ * `dungeon` narrates 5 as five floors, an `escort` as a five-leg journey, an
+ * `investigation` as five leads. The engine reads the same 5 in all three and
+ * derives the same event budget from it (#269, #270).
+ *
+ * Difficulty is a separate axis entirely: it lives on {@link QuestDanger} and
+ * is what `CONTRACT_WEIGHT` scores for the power gap (§2bis). A long contract
+ * is not a hard one, and the two must never be collapsed into a single number.
+ * @see 23-RUN-STRUCTURE.md §2
+ */
+export type QuestIntensity = 3 | 5 | 7;
+
+/** Lowest intensity a contract may carry. */
+export const MIN_QUEST_INTENSITY = 3;
+
+/** Highest intensity a contract may carry — the 2h30 run ceiling (01-PILLARS §2). */
+export const MAX_QUEST_INTENSITY = 7;
+
+/**
+ * Qualitative tag the client is allowed to see in place of the raw intensity.
+ *
+ * The number itself never reaches the player: it would read as a countdown of
+ * remaining stages, which §4 forbids for exactly the reason it forbids a map.
+ * @see 23-RUN-STRUCTURE.md §2, §4
+ */
+export type QuestIntensityTag = "brief" | "sustained" | "relentless";
+
+/**
+ * Intensity to the tag shown on the board. The only sanctioned way to put an
+ * intensity in front of a player.
+ * @see 23-RUN-STRUCTURE.md §2
+ */
+export const QUEST_INTENSITY_TAG: Record<QuestIntensity, QuestIntensityTag> = {
+  3: "brief",
+  5: "sustained",
+  7: "relentless",
+};
+
+/**
+ * Reads an intensity as a dungeon depth.
+ *
+ * Total by construction: {@link QuestIntensity} and {@link ContractDepth} are
+ * the same 3-7 scale, which is what makes a depth a *view* of the intensity
+ * rather than a second number to keep in sync. The function exists so that
+ * relationship is stated once, in types, instead of being re-asserted by a
+ * cast at every call site.
+ * @see 23-RUN-STRUCTURE.md §1, §2
+ */
+export function depthForIntensity(intensity: QuestIntensity): ContractDepth {
+  return intensity;
+}
 
 /**
  * Danger tag shown on the contract board.
@@ -66,29 +126,36 @@ export const MAX_CONTRACT_DEPTH = 7;
 export const MIN_CONTRACT_DEPTH = 3;
 
 /**
- * Target duration per depth, in minutes. Drives the honest estimate shown to
- * the player when they accept a contract.
+ * Target duration per intensity, in minutes. Drives the honest estimate shown
+ * to the player when they accept a contract.
+ *
+ * Keyed on intensity rather than on the duration tag so that every family
+ * answers the duration question from the same source. Before #269 a dungeon
+ * derived its minutes from its depth while other families fell back on their
+ * tag; the two tables agreed by convention, which is exactly the kind of
+ * agreement that drifts.
  * @see 23-RUN-STRUCTURE.md §1
  */
-export const CONTRACT_DURATION_MINUTES: Record<ContractDepth, number> = {
+export const CONTRACT_DURATION_MINUTES: Record<QuestIntensity, number> = {
   3: 45,
   5: 90,
   7: 150,
 };
 
 /**
- * Minutes a non-dungeon contract is expected to run, by duration tag.
- *
- * A dungeon derives its minutes from its depth; the other families have no
- * floors to derive from, so the tag *is* the source. The values line up with
- * `CONTRACT_DURATION_MINUTES` so both kinds of contract answer the same
- * question in the same units.
- * @see 23-RUN-STRUCTURE.md §1
+ * Duration tag that matches an intensity, for a contract whose author did not
+ * pin one. The tag stays an independent field — a commissioner may well
+ * advertise a short job that turns out to be relentless — but it must have a
+ * sane default rather than being invented per call site.
+ * @see 23-RUN-STRUCTURE.md §1, §2
  */
-export const QUEST_DURATION_MINUTES: Record<QuestDuration, number> = {
-  short: 45,
-  long: 90,
-  major: 150,
+export const QUEST_DURATION_FOR_INTENSITY: Record<
+  QuestIntensity,
+  QuestDuration
+> = {
+  3: "short",
+  5: "long",
+  7: "major",
 };
 
 /**
@@ -96,9 +163,11 @@ export const QUEST_DURATION_MINUTES: Record<QuestDuration, number> = {
  * "an adventure" — it has a commissioner, a destination, a payout owed only on
  * return, and conditions under which it fails.
  *
- * `targetDepth` is optional because the board is not a list of dungeons: an
- * escort or a negotiation has no floors, and forcing a depth on it would make
- * the engine lie about what the player accepted (#260).
+ * Every contract carries an `intensity` — how much work it holds. Only a
+ * `dungeon` also exposes it as `targetDepth`: an escort or a negotiation has
+ * no floors, and forcing a depth on it would make the engine lie about what
+ * the player accepted (#260). Depth is a *view* of the intensity, never a
+ * second source of truth (#269).
  * @see 23-RUN-STRUCTURE.md §1, §2
  */
 export interface RunContract {
@@ -114,13 +183,20 @@ export interface RunContract {
   /** Duration tag shown on the board. Minutes stay internal. */
   duration: QuestDuration;
   /**
-   * Floors to descend. Present only for `family: "dungeon"` — no other family
-   * has floors, and no rule may invent a depth for one that lacks it.
+   * How much work the contract holds, on the shared 3-7 scale. Universal: an
+   * escort carries one as much as a dungeon does. Internal — the client only
+   * ever receives {@link QUEST_INTENSITY_TAG} of it.
+   */
+  intensity: QuestIntensity;
+  /**
+   * Floors to descend — the dungeon-only reading of `intensity`. Absent for
+   * every other family: no other family has floors, and no rule may invent a
+   * depth for one that lacks it (#260).
    */
   targetDepth?: ContractDepth;
   /**
-   * Target duration in minutes: derived from `targetDepth` for a dungeon, from
-   * `duration` otherwise. Internal — never shown as a number to the player.
+   * Target duration in minutes: derived from `intensity` for every family.
+   * Internal — never shown as a number to the player.
    */
   targetDurationMinutes: number;
   /** What the commissioner pays on a successful return, in gold. */
@@ -132,6 +208,17 @@ export interface RunContract {
   /** Every way the contract can be lost. Empty means death is the only failure. */
   failureConditions: string[];
 }
+
+/**
+ * The contract as the client receives it: everything but the raw `intensity`.
+ *
+ * The number stays engine-side. A client holding it could render "3 of 5
+ * stages", which is the countdown §4 rules out — the same reason the dungeon
+ * map is never shipped. `RunProjection.intensityTag` carries the qualitative
+ * reading instead.
+ * @see 23-RUN-STRUCTURE.md §2, §4
+ */
+export type ClientRunContract = Omit<RunContract, "intensity">;
 
 /**
  * Narrative label for how a contract's danger tag compares to the player's

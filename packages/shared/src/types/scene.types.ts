@@ -7,10 +7,11 @@ import type { CombatSnapshot } from "./combat.types";
 import type { DiceRoll } from "./dice.types";
 import type { ItemGained } from "./inventory.types";
 import type {
+  ClientRunContract,
   GameMode,
   PowerGapProjection,
+  QuestIntensityTag,
   ReturnEstimate,
-  RunContract,
 } from "./run.types";
 import type { SessionEndReason } from "./session.types";
 
@@ -146,7 +147,14 @@ export interface SceneResponse {
  * @see docs/canon/23-RUN-STRUCTURE.md §3, §4.1
  */
 export interface RunSnapshot {
-  contract: RunContract;
+  /**
+   * The contract minus its intensity: the length is the backend's pacing
+   * dial, and shipping the number would put a countdown on screen that §4
+   * forbids. The tag below is the client's whole read of it (#269).
+   */
+  contract: ClientRunContract;
+  /** Qualitative stand-in for the contract's intensity. @see QUEST_INTENSITY_TAG */
+  intensityTag: QuestIntensityTag;
   mode: GameMode;
   /** Floor the character stands on. 0 = surface. */
   currentDepth: number;

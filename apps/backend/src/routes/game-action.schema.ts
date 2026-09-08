@@ -78,42 +78,38 @@ export const createSessionSchema = z.object({
 export type CreateSessionRequest = z.infer<typeof createSessionSchema>
 
 /**
- * Accepting a contract at the inn and setting out (#228, reshaped in #260).
+ * Accepting a contract at the inn and setting out (#228, reshaped in #260,
+ * generalized in #269).
  *
- * The depth is the commitment a *dungeon* asks for (~45 min at 3 floors, 2h30
- * at 7), and only the canon depths are accepted so no request can open a run
- * longer than the hard cap. Every other family has no floors at all, and the
- * refinement below rejects a request that pairs the two rather than quietly
- * dropping one — a client sending `escort` with a depth is confused about what
- * it is starting, and must be told.
+ * The intensity is the commitment the contract asks for — ~45 min at 3, 2h30
+ * at 7 — and it is required of *every* family, not just dungeons: a hunt and a
+ * negotiation are as long or as short as a delve. Only the canon values are
+ * accepted, so no request can open a run past the hard cap. A dungeon reads its
+ * floors off that same number (`depthForIntensity`), which is why no request
+ * ever carries a depth of its own — two fields would be two truths.
  * @see docs/canon/23-RUN-STRUCTURE.md §1, §2
  */
-export const startRunSchema = z
-  .object({
-    sessionId: z.string().min(1),
-    family: z.enum([
-      'dungeon',
-      'escort',
-      'investigation',
-      'hunt',
-      'recovery',
-      'negotiation',
-      'dilemma',
-    ]),
-    destination: z.string().min(1).max(120),
-    commissioner: z.string().min(1).max(120),
-    danger: z.enum(['easy', 'medium', 'hard']),
-    duration: z.enum(['short', 'long', 'major']),
-    targetDepth: z.union([z.literal(3), z.literal(5), z.literal(7)]).optional(),
-    rewardGold: z.number().int().min(0).max(10_000),
-    objective: z.string().min(1).max(280),
-    successCondition: z.string().min(1).max(280),
-    failureConditions: z.array(z.string().min(1).max(280)).max(5).default([]),
-  })
-  .refine((value) => (value.family === 'dungeon') === (value.targetDepth !== undefined), {
-    message: 'targetDepth is required for a dungeon contract, and forbidden for any other family',
-    path: ['targetDepth'],
-  })
+export const startRunSchema = z.object({
+  sessionId: z.string().min(1),
+  family: z.enum([
+    'dungeon',
+    'escort',
+    'investigation',
+    'hunt',
+    'recovery',
+    'negotiation',
+    'dilemma',
+  ]),
+  destination: z.string().min(1).max(120),
+  commissioner: z.string().min(1).max(120),
+  danger: z.enum(['easy', 'medium', 'hard']),
+  duration: z.enum(['short', 'long', 'major']),
+  intensity: z.union([z.literal(3), z.literal(5), z.literal(7)]),
+  rewardGold: z.number().int().min(0).max(10_000),
+  objective: z.string().min(1).max(280),
+  successCondition: z.string().min(1).max(280),
+  failureConditions: z.array(z.string().min(1).max(280)).max(5).default([]),
+})
 
 export type StartRunRequest = z.infer<typeof startRunSchema>
 

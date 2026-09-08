@@ -173,7 +173,12 @@ model GameSession {
   contractDanger      String?
   /// Tag de durée affiché (short | long | major). Les minutes restent internes.
   contractDuration    String?
-  /// Profondeur visée (3 | 5 | 7). Plafonnée à 7 par le moteur, jamais par la DB.
+  /// Intensité du contrat (3 | 5 | 7) : l'unité universelle de longueur, portée
+  /// par toutes les familles (#269). Null sur les lignes antérieures, relues
+  /// depuis `contractTargetDepth` pour un donjon et depuis le tag de durée
+  /// sinon. Jamais projetée telle quelle au client.
+  contractIntensity   Int?
+  /// Profondeur visée (3 | 5 | 7) : la lecture donjon de `contractIntensity`.
   /// Null pour toute quête non-donjon — une escorte n'a pas de paliers, et
   /// aucune règle n'a le droit de lui en inventer.
   contractTargetDepth Int?

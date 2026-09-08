@@ -16,7 +16,7 @@ import {
 } from './run.service'
 
 import type { GameSession } from '../generated/prisma/client'
-import type { ContractDepth, PersistedInventoryItem, RunState } from '@grimoire/shared'
+import type { PersistedInventoryItem, QuestIntensity, RunState } from '@grimoire/shared'
 
 /** A session row with the run columns at their schema defaults (no contract). */
 function session(overrides: Partial<GameSession> = {}): GameSession {
@@ -32,6 +32,7 @@ function session(overrides: Partial<GameSession> = {}): GameSession {
     gameMode: 'inn',
     contractId: null,
     contractDestination: null,
+    contractIntensity: null,
     contractTargetDepth: null,
     contractRewardGold: null,
     contractObjective: null,
@@ -56,6 +57,7 @@ function contractedSession(overrides: Partial<GameSession> = {}): GameSession {
     contractCommissioner: 'La guilde du sel',
     contractDanger: 'medium',
     contractDuration: 'long',
+    contractIntensity: 5,
     contractTargetDepth: 5,
     contractRewardGold: 120,
     contractObjective: 'Rapporter le sceau du contremaître',
@@ -97,7 +99,7 @@ function item(overrides: Partial<PersistedInventoryItem>): PersistedInventoryIte
   }
 }
 
-function runState(targetDepth: ContractDepth = 5): RunState {
+function runState(intensity: QuestIntensity = 5): RunState {
   return createRunState(
     createContract({
       id: 'contract-1',
@@ -105,8 +107,7 @@ function runState(targetDepth: ContractDepth = 5): RunState {
       destination: 'Les Salines Basses',
       commissioner: 'La guilde du sel',
       danger: 'medium',
-      duration: 'long',
-      targetDepth,
+      intensity,
       rewardGold: 120,
       objective: 'Rapporter le sceau du contremaître',
       successCondition: 'Le sceau est dans le sac au retour',
@@ -261,6 +262,7 @@ describe('readRunState', () => {
       contractCommissioner: source.contractCommissioner,
       contractDanger: source.contractDanger,
       contractDuration: source.contractDuration,
+      contractIntensity: source.contractIntensity,
       contractTargetDepth: source.contractTargetDepth,
       contractRewardGold: source.contractRewardGold,
       contractObjective: source.contractObjective,
@@ -305,6 +307,31 @@ describe('readContract — quest families (#260)', () => {
     expect(contract!.commissioner).toBe('Commanditaire inconnu')
     // The objective is the only success condition such a row ever had.
     expect(contract!.successCondition).toBe('Rapporter le sceau du contremaître')
+  })
+
+  it('reads a pre-#269 dungeon back at the intensity its depth already stated', () => {
+    // The column is new, but the length was always there: a 7-floor delve is a
+    // 7-intensity contract, and reads back as the same run it was.
+    const contract = readContract(contractedSession({ contractIntensity: null }))
+
+    expect(contract!.intensity).toBe(5)
+    expect(contract!.targetDepth).toBe(5)
+  })
+
+  it('reads a pre-#269 floorless contract back through its duration tag', () => {
+    // No floors to read the length off, so the duration tag is what the row
+    // carried. This is migration archaeology, never a rule for new contracts.
+    const contract = readContract(
+      contractedSession({
+        contractFamily: 'escort',
+        contractTargetDepth: null,
+        contractIntensity: null,
+        contractDuration: 'major',
+      })
+    )
+
+    expect(contract!.intensity).toBe(7)
+    expect(contract!.targetDepth).toBeUndefined()
   })
 
   it('falls back to mid-scale tags when a stored value is unreadable', () => {
