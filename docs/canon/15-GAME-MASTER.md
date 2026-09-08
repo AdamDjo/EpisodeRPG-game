@@ -245,6 +245,19 @@ anticiper s'il lit bien.
 Côté frontend, `dread` reçoit un traitement visuel propre (ambiance sourde, pas d'alerte rouge :
 c'est de l'appréhension, pas du combat). Implémentation : ticket moteur séparé.
 
+🔧 **Points d'implémentation de l'enum** (pour le ticket moteur — l'enum vit en trois endroits, à
+changer ensemble sous peine de rejet Zod sur une narration `dread` valide) :
+
+| Emplacement                                    | Rôle                                              |
+| ---------------------------------------------- | ------------------------------------------------- |
+| `apps/backend/src/ai/compression-validator.ts` | Schéma Zod du mood en sortie de compression       |
+| `apps/backend/src/services/memory.service.ts`  | Enum listé en clair dans le prompt de compression |
+| `docs/canon/16-MEMORY.md §5`                   | Le prompt canon dont le précédent est la copie    |
+
+⚠️ `ChronicleMood` (`packages/shared/src/types/chronicle.types.ts`) est un enum **distinct**
+(`tragic | epic | melancholic | serene | absurd`, cf. `17-RUN-CHRONICLE`) : il n'est **pas**
+concerné par `dread`.
+
 #### Le champ `foreshadow` _(ajout 2026-08-15, #281)_
 
 Un champ **optionnel** en sortie, qui laisse l'IA signaler qu'elle a semé un présage exploitable :
