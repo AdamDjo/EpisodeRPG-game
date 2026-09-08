@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useRef } from 'react'
 
@@ -54,7 +53,6 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
           <a className="salt-scroll" href="#contrat">
             <i aria-hidden="true">↓</i> <span>{t('threshold')}</span>
           </a>
-          <span className="salt-seal" data-shared="seal" aria-hidden="true"></span>
           <div className="salt-door" aria-hidden="true" />
         </section>
         <section id="contrat" className="salt-plan salt-contrat" aria-labelledby="contract-title">
@@ -84,11 +82,6 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
             </dl>
             <p>{t('contractNote')}</p>
           </div>
-          <span
-            className="salt-seal salt-seal--contract"
-            data-target="seal"
-            aria-hidden="true"
-          ></span>
           <div className="salt-paper" aria-hidden="true" />
         </section>
         <section id="gameplay" className="salt-plan salt-partie" aria-labelledby="play-title">
@@ -113,7 +106,6 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
               {t('survivalLink')} →
             </a>
           </div>
-          <span className="salt-relic" data-shared="relic" aria-hidden="true"></span>
           <LandingHud />
           <div className="salt-wipe salt-wipe--salt" aria-hidden="true" />
           <div className="salt-wipe salt-wipe--black" aria-hidden="true" />
@@ -145,12 +137,6 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
             </div>
             <i aria-hidden="true" />
           </div>
-          <span
-            className="salt-relic salt-relic--heir"
-            data-target="relic"
-            data-shared="reliquary"
-            aria-hidden="true"
-          ></span>
           <div className="salt-heritage__end">
             <GameLink variant="landing" href="#outro">
               {t('heritageLink')} →
@@ -161,11 +147,6 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
         </section>
         <section id="outro" className="salt-plan salt-auberge" aria-labelledby="outro-title">
           <LandingArt name="auberge" />
-          <span
-            className="salt-relic salt-relic--inn"
-            data-target="reliquary"
-            aria-hidden="true"
-          ></span>
           <div className="salt-values" aria-hidden="true">
             <i />
             <i />
@@ -185,13 +166,6 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
           </div>
         </section>
       </main>
-      <div className="salt-flights" aria-hidden="true">
-        {(['seal', 'relic', 'reliquary'] as const).map((name) => (
-          <span key={name} data-flight={name}>
-            <Image alt="" width={120} height={120} src={`/encre-de-sel/landing/${name}.webp`} />
-          </span>
-        ))}
-      </div>
       <footer className="salt-footer">
         <span>GRIMOIRE © 2026</span>
         <span>{t('created')}</span>

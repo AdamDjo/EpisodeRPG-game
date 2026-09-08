@@ -9,7 +9,6 @@ import {
   attachPlateParallax,
   attachPointerParallax,
   attachScrollProgress,
-  connectSharedElement,
   PLATE_SCALE,
   playHeroEntrance,
   revealPlanCopy,
@@ -132,7 +131,6 @@ export function useLandingMotion(root: RefObject<HTMLDivElement | null>) {
           })
           return
         }
-        const cleanups: (() => void)[] = []
 
         const hero = gsap.timeline({
           scrollTrigger: {
@@ -181,7 +179,6 @@ export function useLandingMotion(root: RefObject<HTMLDivElement | null>) {
             0
           )
           .from('.salt-contrat .salt-art', { yPercent: 5, scale: 1.04, duration: 1 }, 0)
-        cleanups.push(connectSharedElement(element, contract, 'seal'))
 
         const game = raccord('#gameplay')
         game
@@ -226,7 +223,6 @@ export function useLandingMotion(root: RefObject<HTMLDivElement | null>) {
           .from('.salt-heritage .salt-art', { yPercent: 4, scale: 1.04, duration: 0.9 }, 0)
           .from('.salt-times i', { scaleX: 0, transformOrigin: 'left', duration: 0.65 }, 0.25)
           .from('.salt-times div', { y: 10, stagger: 0.1, duration: 0.25 }, 0.35)
-        cleanups.push(connectSharedElement(element, legacy, 'relic'))
 
         const inn = raccord('#outro')
         inn
@@ -247,9 +243,8 @@ export function useLandingMotion(root: RefObject<HTMLDivElement | null>) {
             0.15
           )
           .from('.salt-auberge .salt-art', { scale: 1.035, duration: 0.85 }, 0)
-        cleanups.push(connectSharedElement(element, inn, 'reliquary'))
 
-        return () => cleanups.forEach((cleanup) => cleanup())
+        return undefined
       })
 
       const decode = async (image: HTMLImageElement) => {
