@@ -605,6 +605,43 @@ describe('opening a fight from the scene the AI just wrote (§1)', () => {
     expect(response.combat).toBeUndefined()
   })
 
+  // §2bis: the contract's reward is scaled by the equipment-vs-danger gap at
+  // the moment of extraction, not by the raw contract value. Without a test
+  // here the multiplier could silently regress to 1 and nothing would fail.
+  it('scales the extraction reward by the power gap', async () => {
+    narrates(null)
+    const surfacing = {
+      ...sessionOnARun(null),
+      currentDepth: 1,
+      returnEngaged: true,
+      objectiveSecured: true,
+    } as unknown as GameSession
+
+    const response = await resolveTurn({ session: surfacing, character, choice: walkOn })
+
+    // No gear at all → score 0 against the default `medium` weight 6 → gap -6,
+    // the `impossible` band → x1.6. Contract pays 40, so the purse gets 64.
+    expect(lastCharacterUpdate().gold).toEqual({ increment: 64 })
+    expect(response.gold).toBe(character.gold + 64)
+  })
+
+  // The reward is owed on a genuine extraction only: coming home empty-handed
+  // ends the run just the same, but pays nothing to scale.
+  it('pays nothing when the run ends without the objective', async () => {
+    narrates(null)
+    const surfacing = {
+      ...sessionOnARun(null),
+      currentDepth: 1,
+      returnEngaged: true,
+      objectiveSecured: false,
+    } as unknown as GameSession
+
+    await resolveTurn({ session: surfacing, character, choice: walkOn })
+
+    expect(lastSessionUpdate()).toMatchObject({ endReason: 'returned_empty' })
+    expect(lastCharacterUpdate().gold).toBeUndefined()
+  })
+
   // Most turns carry no encounter at all, and must stay exploration turns.
   it('leaves the turn alone when the AI signalled nothing', async () => {
     narrates(null)
