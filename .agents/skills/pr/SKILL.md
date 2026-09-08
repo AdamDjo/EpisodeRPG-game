@@ -39,11 +39,39 @@ Exécuter dans l'ordre :
    ```
 
 6. **Préparer le titre et le body de la PR**
-   - Titre : basé sur le nom de la branche et les commits
+
+   **Titre — le ticket passe en premier, toujours :**
+
+   ```
+   #<épic> › #<ticket> · <Résumé lisible du changement>
+   ```
+
+   Exemples : `#263 › #267 · Charges d'Emprise et coût Calamine résisté`
+   `#289 · Mood dread propagé au prompt de compression` (ticket sans épic)
+
+   Résoudre l'épic avec `~/.claude/bin/ticket-context.sh --short`, ou en lisant le
+   marqueur `Épic : #N` en tête du body du ticket. **Ne jamais déduire l'épic du premier
+   `#N` du body** — ce serait un ticket frère. Sans marqueur : pas d'épic dans le titre.
+
+   Règle : le numéro de ticket ouvre le titre pour qu'il soit **cliquable et lu avant**
+   le numéro de PR affiché par GitHub. Ne jamais écrire le numéro de PR dans un titre,
+   un commit, une description ou un message. Le préfixe conventionnel (`feat:`, `fix:`)
+   reste dans les **commits**, pas dans le titre de PR — c'est le ticket qui porte le sujet.
    - Body :
 
      ```
-     ## Résumé
+     > **Épic #<n° épic, ou —>** › **Ticket #<n° issue>** — <titre du ticket>
+
+     ## Avant
+     <ce qui était cassé/absent, point de vue joueur, 1 phrase>
+
+     ## Après
+     <ce qui marche maintenant, même point de vue, 1 phrase>
+
+     ## Reste à faire
+     <cases non couvertes + ticket de suite, ou « Rien — ticket entièrement couvert. »>
+
+     ## Ce qui a changé techniquement
      <liste des changements principaux>
 
      ## Phase et domaine
@@ -66,10 +94,14 @@ Exécuter dans l'ordre :
    - Fichiers dans `apps/backend/` ou `packages/shared/` → `domain: backend`.
    - Fichiers d'orchestration/prompt/provider IA → ajouter `domain: ai`.
    - Reprendre depuis l'issue liée la version de release : `release: v0.2`.
-   - Ces trois axes — `domain: *`, `phase: *`, `release: *` — sont les **seuls** labels du repo, avec
-     `status: blocked`. Ne jamais créer un label absent de `gh label list` : les familles `type:`,
-     `priority:`, `size:`, `epic:` et les domaines `shared`/`database`/`devops` ont été supprimés le
+   - Reprendre depuis l'issue liée son label d'épic : `epic: #<n> <mot-clé>`.
+   - Ces quatre axes — `epic: *`, `domain: *`, `phase: *`, `release: *` — sont les **seuls** labels du
+     repo, avec `status: blocked`. Ne jamais créer un label absent de `gh label list` : les familles
+     `type:`, `priority:`, `size:` et les domaines `shared`/`database`/`devops` ont été supprimés le
      2026-08-08 et ne doivent pas ressusciter.
+   - Le label `epic: *` est un **reflet** du marqueur `Épic : #N` en tête du body du ticket, qui reste
+     la source unique. En cas de divergence, ne pas arbitrer : relancer
+     `~/.claude/bin/sync-epic-labels.sh`, qui réaligne les labels sur les marqueurs.
 
 8. **Créer la PR via `gh pr create`**
    - owner: `AdamDjo`
