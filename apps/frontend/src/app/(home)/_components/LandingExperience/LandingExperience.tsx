@@ -29,6 +29,7 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
       <a className="salt-skip" href="#landing-content">
         {t('skip')}
       </a>
+      <div className="salt-progress" aria-hidden="true" />
       <MainNavigation context="marketing" onAnchorNavigate={useNativeAnchor} />
       <main id="landing-content">
         <section id="velkhar" className="salt-plan salt-seuil" aria-labelledby="salt-title">
@@ -51,7 +52,7 @@ export function LandingExperience({ resumeHref }: { resumeHref?: string }) {
             </div>
           </div>
           <a className="salt-scroll" href="#contrat">
-            ↓ <span>{t('threshold')}</span>
+            <i aria-hidden="true">↓</i> <span>{t('threshold')}</span>
           </a>
           <span className="salt-seal" data-shared="seal" aria-hidden="true"></span>
           <div className="salt-door" aria-hidden="true" />

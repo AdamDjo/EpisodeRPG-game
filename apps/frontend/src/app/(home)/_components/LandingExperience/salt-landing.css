@@ -1097,7 +1097,11 @@
   width: 3px;
 }
 @media (max-width: 1120px), (prefers-reduced-motion: reduce) {
-  .salt-flights,
+  .salt-flights {
+    display: none;
+  }
+}
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
   .salt-ash {
     display: none;
   }
@@ -1105,5 +1109,161 @@
 @media (prefers-reduced-motion: no-preference) {
   html:has(.salt-landing) {
     scroll-behavior: smooth;
+  }
+}
+
+/* Lenis owns the scroll position; native smoothing would fight it. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Motion layer. Everything below is transform/opacity only and disabled under reduced motion. */
+.salt-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: 2px;
+  background: var(--salt-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+/* Masked heading lines need room for ascenders and descenders inside the clip. */
+.salt-line-mask {
+  padding: 0.12em 0.05em 0.08em;
+  margin: -0.12em -0.05em -0.08em;
+}
+.salt-scroll i {
+  font-style: normal;
+}
+.salt-landing .game-button--landing {
+  overflow: hidden;
+}
+.salt-landing .game-button--landing .game-button__label {
+  position: relative;
+  overflow: hidden;
+}
+.salt-landing .game-button--landing .game-button__label::after {
+  content: '';
+  position: absolute;
+  inset: -20% -10%;
+  background: linear-gradient(105deg, transparent 38%, #fff5d955 50%, transparent 62%);
+  transform: translateX(-130%) skewX(-18deg);
+  pointer-events: none;
+}
+.salt-actions > a:not(.game-button),
+.salt-text-link {
+  position: relative;
+  border-bottom-color: transparent;
+}
+.salt-actions > a:not(.game-button)::after,
+.salt-text-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--salt-gold);
+  transform-origin: left center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Hero copy stays hidden until the opening runs; without JS it fades in on its own. */
+  .salt-seuil .salt-copy > :not(.salt-actions),
+  .salt-seuil .salt-actions > *,
+  .salt-seuil .salt-scroll,
+  .salt-seuil .salt-depth {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: salt-hero-fallback 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.6s forwards;
+  }
+  .salt-seuil .salt-depth {
+    transform: none;
+  }
+  .salt-landing .main-navigation--marketing.game-top-bar {
+    opacity: 0;
+    transform: translateY(-14px);
+    animation: salt-hero-fallback 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.6s forwards;
+  }
+  .salt-landing--motion .salt-seuil .salt-copy > :not(.salt-actions),
+  .salt-landing--motion .salt-seuil .salt-actions > *,
+  .salt-landing--motion .salt-seuil .salt-scroll,
+  .salt-landing--motion .salt-seuil .salt-depth,
+  .salt-landing--motion .main-navigation--marketing.game-top-bar {
+    animation: none;
+  }
+  .salt-scroll i {
+    display: inline-block;
+    animation: salt-bob 2.2s ease-in-out infinite;
+  }
+  .salt-landing .game-button--landing:hover .game-button__label::after {
+    animation: salt-sheen 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .salt-actions > a:not(.game-button):hover::after,
+  .salt-text-link:hover::after {
+    animation: salt-underline 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .salt-demo__response {
+    animation: salt-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+@keyframes salt-hero-fallback {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes salt-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@keyframes salt-sheen {
+  to {
+    transform: translateX(130%) skewX(-18deg);
+  }
+}
+@keyframes salt-underline {
+  0% {
+    transform: scaleX(1);
+    transform-origin: right center;
+  }
+  49% {
+    transform: scaleX(0);
+    transform-origin: right center;
+  }
+  51% {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  100% {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+@keyframes salt-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

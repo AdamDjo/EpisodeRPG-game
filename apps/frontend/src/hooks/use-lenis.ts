@@ -11,6 +11,9 @@ import { ScrollTrigger, gsap } from '@/lib/gsap-init'
 // null en reduced-motion → les appelants retombent sur le scroll natif.
 let activeLenis: Lenis | null = null
 
+// Miroir du `scroll-margin-top` des `.salt-plan`.
+const ANCHOR_OFFSET = -12
+
 export function getLenis(): Lenis | null {
   return activeLenis
 }
@@ -29,6 +32,7 @@ export function useLenis() {
       smoothWheel: true,
       wheelMultiplier: 0.9,
       touchMultiplier: 1.2,
+      anchors: { offset: ANCHOR_OFFSET },
     })
 
     activeLenis = lenis
@@ -38,6 +42,12 @@ export function useLenis() {
     }
 
     lenis.on('scroll', updateScrollTrigger)
+    // La hauteur du document bouge après le premier paint (images, polices, démo) :
+    // sans ce resync Lenis garde une limite de scroll périmée et bloque le défilement.
+    const resizeLenis = () => {
+      lenis.resize()
+    }
+    ScrollTrigger.addEventListener('refresh', resizeLenis)
 
     const update = (time: number) => {
       lenis.raf(time * 1000)
@@ -49,6 +59,7 @@ export function useLenis() {
     return () => {
       gsap.ticker.remove(update)
       lenis.off('scroll', updateScrollTrigger)
+      ScrollTrigger.removeEventListener('refresh', resizeLenis)
       lenis.destroy()
       if (activeLenis === lenis) {
         activeLenis = null
