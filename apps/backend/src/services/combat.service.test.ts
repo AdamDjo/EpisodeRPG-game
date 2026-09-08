@@ -16,6 +16,7 @@ import type { AiCombatEncounter } from '../ai/scene-validator'
 import type { GameSession } from '../generated/prisma/client'
 import type {
   ActiveCondition,
+  CombatAction,
   CombatPlayer,
   CombatState,
   RunState,
@@ -262,6 +263,77 @@ describe('resolving a full exchange', () => {
     })
     expect(output.state.outcome).toBe('fled')
     expect(output.result?.fleeDirection).toBe('backward')
+  })
+
+  describe('the SOUFFLE bonus action across a full exchange (§4, #265)', () => {
+    /** SOUFFLE 16 = mod +3: the extra action is granted every round, no draw. */
+    function makeSwiftState(overrides: Partial<CombatState> = {}): CombatState {
+      return makeState({
+        player: makePlayer({ attributes: { blood: 14, breath: 16, will: 10 } }),
+        ...overrides,
+      })
+    }
+
+    function playerEntries(action: CombatAction) {
+      const output = resolveCombatTurn({
+        state: makeSwiftState({ enemies: [instantiateEnemy('watcher', 'e1')] }),
+        survival: makeSurvival(),
+        action,
+        itemHealing: action === 'use_item' ? 6 : undefined,
+        rng: () => 0.1,
+      })
+      return output.entriesThisTurn.filter((entry) => entry.actor === 'player')
+    }
+
+    it('lets speed strike twice in the same exchange', () => {
+      expect(playerEntries('attack')).toHaveLength(2)
+    })
+
+    it('lets speed shout an order twice', () => {
+      expect(playerEntries('command')).toHaveLength(2)
+    })
+
+    // Canon caps artefact awakening at once per scene (10-COMBAT §3,
+    // 11-INVENTORY-ECONOMY §5): tempo must not buy a second activation.
+    it('never wakes an artefact twice in one exchange', () => {
+      expect(playerEntries('awaken_artefact')).toHaveLength(1)
+    })
+
+    // One item consumed must heal once, whatever the SOUFFLE.
+    it('never spends one item for two heals', () => {
+      expect(playerEntries('use_item')).toHaveLength(1)
+    })
+
+    it('never stacks the defensive bandage', () => {
+      expect(playerEntries('defend')).toHaveLength(1)
+    })
+
+    it('never retries a flight that already resolved', () => {
+      expect(playerEntries('flee')).toHaveLength(1)
+    })
+
+    it('leaves a slow character on a single action', () => {
+      const output = resolveCombatTurn({
+        state: makeState({ enemies: [instantiateEnemy('watcher', 'e1')] }),
+        survival: makeSurvival(),
+        action: 'attack',
+        rng: () => 0.1,
+      })
+      expect(output.entriesThisTurn.filter((entry) => entry.actor === 'player')).toHaveLength(1)
+    })
+
+    // No posthumous flourish: a killing blow ends the exchange there.
+    it('does not swing again once the first blow ended the fight', () => {
+      const frail = { ...instantiateEnemy('brigand', 'e1'), hp: 1 }
+      const output = resolveCombatTurn({
+        state: makeSwiftState({ enemies: [frail] }),
+        survival: makeSurvival(),
+        action: 'attack',
+        rng: () => 0.95,
+      })
+      expect(output.entriesThisTurn).toHaveLength(1)
+      expect(output.result?.outcome).toBe('victory')
+    })
   })
 })
 

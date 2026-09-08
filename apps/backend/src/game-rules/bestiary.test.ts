@@ -9,20 +9,20 @@ import {
   listCreatures,
 } from './bestiary'
 
-import type { CreatureStatBlock, CreatureVariant } from '@grimoire/shared'
+import type { CreatureId, CreatureStatBlock, CreatureVariant } from '@grimoire/shared'
 
-/** Canon reference character: `PV = 10 + SANG` with SANG +1, leather armour. */
-const PLAYER_HP = 11
+/** Canon reference character: `PV = 16 + 4×mod SANG` at the average SANG (#265). */
+const PLAYER_HP = 16
 
-/** Average of a damage expression, used to read a creature as turns-to-kill. */
+/** Average of a damage expression, used to read a creature's threat. */
 function averageDamage(creature: CreatureStatBlock): number {
   if (!creature.damage) return 0
   const { count, faces, bonus } = creature.damage
   return count * ((faces + 1) / 2) + bonus
 }
 
-/** Turns this creature needs to drop the reference character. */
-function turnsToKillPlayer(creature: CreatureStatBlock): number {
+/** Tours-pour-mourir: turns this creature needs to drop the reference player. */
+function turnsToDie(creature: CreatureStatBlock): number {
   const perTurn = averageDamage(creature)
   return perTurn === 0 ? Infinity : PLAYER_HP / perTurn
 }
@@ -107,7 +107,7 @@ describe('depth calibration', () => {
   // may drop an intact character in under four turns.
   it('leaves the player at least four turns against anything on floors 1-2', () => {
     for (const creature of [...creaturesForDepth(1), ...creaturesForDepth(2)]) {
-      expect(turnsToKillPlayer(creature)).toBeGreaterThanOrEqual(4)
+      expect(turnsToDie(creature)).toBeGreaterThanOrEqual(4)
     }
   })
 
@@ -119,7 +119,7 @@ describe('depth calibration', () => {
       (creature) => creature.engagement !== 'hazard'
     )
     for (const creature of fightable) {
-      expect(turnsToKillPlayer(creature)).toBeGreaterThan(2)
+      expect(turnsToDie(creature)).toBeGreaterThan(2)
     }
   })
 
@@ -127,7 +127,7 @@ describe('depth calibration', () => {
   it('confines creatures that kill in two turns or less to floors 5+', () => {
     const fightable = listCreatures().filter((creature) => creature.engagement !== 'hazard')
     for (const creature of fightable) {
-      if (turnsToKillPlayer(creature) <= 2) {
+      if (turnsToDie(creature) <= 2) {
         expect(creature.minDepth).toBeGreaterThanOrEqual(5)
       }
     }
@@ -137,6 +137,69 @@ describe('depth calibration', () => {
     const worstEarly = Math.max(...creaturesForDepth(1).map(averageDamage))
     const worstLate = Math.max(...creaturesForDepth(MAX_CONTRACT_DEPTH).map(averageDamage))
     expect(worstLate).toBeGreaterThan(worstEarly)
+  })
+})
+
+// One test per palier, verifying the tours-pour-mourir ratio the bestiary
+// header is calibrated on (#265). Tolerance keeps this a calibration check,
+// not an exact-value pin — the "valeurs fragiles" section of #265 expects
+// these to move under playtesting.
+describe('tours-pour-mourir per palier (#265)', () => {
+  // Named per-creature groups, matching the bestiary header's own palier
+  // breakdown — depth ranges alone don't cleanly separate these (several
+  // ids span floors from more than one palier), so the DoD's "one test per
+  // palier" is expressed as one test per named roster instead.
+  const palier1to2 = (
+    [
+      'ruin_rat',
+      'ash_scorpion',
+      'road_serpent',
+      'stone_bat',
+      'civilian',
+      'sand_dog',
+      'calcined_nascent',
+      'blade_crab',
+    ] satisfies CreatureId[]
+  ).map((id) => getCreature(id))
+
+  const palier3to5 = (
+    ['calcined_common', 'brigand', 'revenant', 'soldier', 'shore_beast'] satisfies CreatureId[]
+  ).map((id) => getCreature(id))
+
+  const palier5to7Rares = (
+    ['calcined_ancient', 'sand_weaver', 'watcher', 'inquisitor'] satisfies CreatureId[]
+  ).map((id) => getCreature(id))
+
+  const palier6to7Legendaries = (
+    ['calcined_major', 'heart_of_sand', 'watcher_king'] satisfies CreatureId[]
+  ).map((id) => getCreature(id))
+
+  it('palier 1-2 lands around 6-7 tours-pour-mourir', () => {
+    for (const creature of palier1to2) {
+      expect(turnsToDie(creature)).toBeGreaterThanOrEqual(6)
+      expect(turnsToDie(creature)).toBeLessThanOrEqual(7)
+    }
+  })
+
+  it('palier 3-5 lands around 4 tours-pour-mourir', () => {
+    for (const creature of palier3to5) {
+      expect(turnsToDie(creature)).toBeGreaterThanOrEqual(3.5)
+      expect(turnsToDie(creature)).toBeLessThanOrEqual(4.6)
+    }
+  })
+
+  it('palier 5-7 rares land around 2.5 tours-pour-mourir', () => {
+    for (const creature of palier5to7Rares) {
+      expect(turnsToDie(creature)).toBeGreaterThanOrEqual(2.3)
+      expect(turnsToDie(creature)).toBeLessThanOrEqual(2.6)
+    }
+  })
+
+  it('palier 6-7 legendaries land around 2 tours-pour-mourir', () => {
+    for (const creature of palier6to7Legendaries) {
+      expect(turnsToDie(creature)).toBeGreaterThanOrEqual(1.7)
+      expect(turnsToDie(creature)).toBeLessThanOrEqual(2)
+    }
   })
 })
 

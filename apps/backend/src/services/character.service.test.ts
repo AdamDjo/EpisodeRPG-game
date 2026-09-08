@@ -31,8 +31,8 @@ describe('deriveAttributes', () => {
     const { attributes, maxHp } = deriveAttributes('sahelin', 'salt-walker')
 
     expect(attributes).toEqual({ blood: 15, breath: 10, will: 10 })
-    // maxHp = 10 + modifier(15) = 10 + 2.
-    expect(maxHp).toBe(12)
+    // maxHp = 16 + 4 × modifier(15) = 16 + 4×2 (#265).
+    expect(maxHp).toBe(24)
   })
 
   it('applies a negative people bonus (changepeau: +1 breath, -1 will)', () => {
@@ -85,8 +85,8 @@ describe('createCharacter', () => {
         blood: 10,
         breath: 14,
         will: 11,
-        hp: 10,
-        maxHp: 10,
+        hp: 16,
+        maxHp: 16,
         thirst: 100,
         hunger: 100,
         energy: 100,
