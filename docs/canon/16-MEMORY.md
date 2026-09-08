@@ -243,7 +243,7 @@ Output STRICTLY as JSON:
   "summary": "150 tokens max, third-person narrative",
   "key_facts": ["fact 1", "fact 2", "fact 3"],  // 3-5 max
   "key_facts_pinned": [/* critical facts per rules */],
-  "mood": "calm | tense | festive | sacred | dangerous",
+  "mood": "calm | tense | festive | sacred | dangerous | dread",
   "npcs_evolution": [{"name": "...", "status": "...", "last_seen": "..."}]
 }
 
@@ -253,6 +253,11 @@ Automatic pinning rules:
 - Quest activated → key_facts_pinned
 - Major moral choice → key_facts_pinned
 ```
+
+> **Le mood `dread` _(ajout 2026-08-15, #281)_.** L'enum de compression suit strictement celui de
+> `15-GAME-MASTER §4.1` — six valeurs, pas cinq. Une scène de présage compressée en `tense` ou
+> `dangerous` perdrait l'information qui la distingue : la menace n'était pas encore là. Toute
+> évolution de l'enum doit être répercutée **ici et dans `15-GAME-MASTER §4.1` en même temps**.
 
 ### Coût
 
