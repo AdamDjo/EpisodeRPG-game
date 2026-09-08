@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "family": "dungeon",
+  "artDirection": "encre-de-sel-v2",
+  "fallbackId": "dungeon-neutral-passage-pilier-fendu-v1",
+  "assets": [
+    {
+      "id": "dungeon-neutral-passage-pilier-fendu-v1",
+      "file": "/scenes/dungeon/dungeon-neutral-passage-pilier-fendu-v1.webp",
+      "locationType": "dungeon",
+      "variant": "split-pillar",
+      "usage": "run-neutral",
+      "visibleFacts": [
+        "un passage se divise autour d'un immense pilier noir fendu",
+        "une corde rompue et une gourde vide reposent au pied du pilier",
+        "une vieille empreinte de main noire marque la pierre"
+      ]
+    },
+    {
+      "id": "dungeon-crypt-salle-ecorches-mortuary-v1",
+      "file": "/scenes/dungeon/dungeon-crypt-salle-ecorches-mortuary-v1.webp",
+      "locationType": "crypt",
+      "variant": "mortuary-table",
+      "usage": "run-location",
+      "requiredSceneTags": ["mortuary"],
+      "visibleFacts": [
+        "un corps ancien est ouvert sur une table noire",
+        "un crâne repose dans une coupe cerclée d'or",
+        "une traînée de sang noir séché traverse le sol"
+      ]
+    },
+    {
+      "id": "dungeon-crypt-ossuaire-noms-v2",
+      "file": "/scenes/dungeon/dungeon-crypt-ossuaire-noms-v2.webp",
+      "locationType": "crypt",
+      "variant": "named-ossuary",
+      "usage": "run-location",
+      "requiredSceneTags": ["ossuary"],
+      "visibleFacts": [
+        "un mur d'ossements s'est effondré dans le passage",
+        "certains crânes portent de petites plaques d'or",
+        "une large tache noire sèche sous les ossements"
+      ]
+    },
+    {
+      "id": "dungeon-archontic-atrium-desaxe-v2",
+      "file": "/scenes/dungeon/dungeon-archontic-atrium-desaxe-v2.webp",
+      "locationType": "archontic-ruin",
+      "variant": "offset-atrium",
+      "usage": "run-location",
+      "requiredSceneTags": ["measurement-hall"],
+      "visibleFacts": [
+        "des plateformes pâles convergent autour d'un puits noir",
+        "quatre corps anciens sont maintenus dans des cadres de mesure",
+        "une botte solitaire reste alignée sous un cadre vide"
+      ]
+    },
+    {
+      "id": "dungeon-cavern-gueule-sel-v1",
+      "file": "/scenes/dungeon/dungeon-cavern-gueule-sel-v1.webp",
+      "locationType": "cavern",
+      "variant": "salt-jaw",
+      "usage": "run-location",
+      "requiredSceneTags": ["salt-cavern"],
+      "visibleFacts": [
+        "des formations de Sel encadrent un profond ravin noir",
+        "un câble d'arpentage réparé à l'or traverse le vide",
+        "les restes d'une ancienne expédition dépassent d'une coulée de Sel"
+      ]
+    },
+    {
+      "id": "dungeon-archontic-machines-muettes-v2",
+      "file": "/scenes/dungeon/dungeon-archontic-machines-muettes-v2.webp",
+      "locationType": "archontic-ruin",
+      "variant": "silent-presses",
+      "usage": "run-location",
+      "requiredSceneTags": ["machine-hall"],
+      "visibleFacts": [
+        "deux presses archontiques immobiles dominent la salle",
+        "un ancien corps est écrasé dans la machine la plus proche",
+        "un levier brisé gît devant les presses"
+      ]
+    },
+    {
+      "id": "dungeon-archontic-observatoire-enfoui-v2",
+      "file": "/scenes/dungeon/dungeon-archontic-observatoire-enfoui-v2.webp",
+      "locationType": "archontic-ruin",
+      "variant": "buried-observatory",
+      "usage": "run-location",
+      "requiredSceneTags": ["observatory"],
+      "visibleFacts": [
+        "un disque concave pâle vise une ouverture noire au plafond",
+        "sept observateurs morts restent assis autour du disque",
+        "l'un des sièges regarde désormais le mur"
+      ]
+    },
+    {
+      "id": "dungeon-crypt-citerne-poumons-noirs-v1",
+      "file": "/scenes/dungeon/dungeon-crypt-citerne-poumons-noirs-v1.webp",
+      "locationType": "flooded-crypt",
+      "variant": "black-lung-cistern",
+      "usage": "run-location",
+      "requiredSceneTags": ["flooded-cistern"],
+      "visibleFacts": [
+        "une citerne circulaire est remplie d'eau parfaitement noire",
+        "trois corps anciens reposent sous l'eau sur des berceaux de pierre",
+        "leurs tubes d'or replongent dans la citerne"
+      ]
+    },
+    {
+      "id": "dungeon-archontic-pont-mesures-v2",
+      "file": "/scenes/dungeon/dungeon-archontic-pont-mesures-v2.webp",
+      "locationType": "archontic-ruin",
+      "variant": "measured-bridge",
+      "usage": "run-location",
+      "requiredSceneTags": ["measure-bridge"],
+      "visibleFacts": [
+        "un pont pâle traverse un vide rectangulaire noir",
+        "ses deux moitiés sont précisément désaxées",
+        "les jambes d'un ancien arpenteur restent comprimées entre les dalles"
+      ]
+    },
+    {
+      "id": "dungeon-cavern-veine-rebrousse-vent-v1",
+      "file": "/scenes/dungeon/dungeon-cavern-veine-rebrousse-vent-v1.webp",
+      "locationType": "cavern",
+      "variant": "reverse-wind-vein",
+      "usage": "run-location",
+      "requiredSceneTags": ["active-cinder", "petrification-site"],
+      "visibleFacts": [
+        "une large veine de Cendre dorée fend la roche en diagonale",
+        "la poussière dorée adhère au plafond contre la gravité",
+        "un ancien prospecteur est pétrifié dans la veine"
+      ]
+    },
+    {
+      "id": "dungeon-archontic-dortoir-veilleurs-v1",
+      "file": "/scenes/dungeon/dungeon-archontic-dortoir-veilleurs-v1.webp",
+      "locationType": "archontic-ruin",
+      "variant": "watcher-dormitory",
+      "usage": "run-location",
+      "requiredSceneTags": ["watcher-vault"],
+      "visibleFacts": [
+        "des Veilleurs éteints reposent dans des berceaux muraux",
+        "leurs fentes oculaires sont entièrement noires",
+        "un ancien pillard est mort caché dans une carcasse ouverte"
+      ]
+    },
+    {
+      "id": "dungeon-industrial-four-sel-v1",
+      "file": "/scenes/dungeon/dungeon-industrial-four-sel-v1.webp",
+      "locationType": "industrial-ruin",
+      "variant": "salt-kiln",
+      "usage": "run-location",
+      "requiredSceneTags": ["salt-kiln"],
+      "visibleFacts": [
+        "un four froid ouvre sa gueule noire sur un convoyeur",
+        "un ancien ouvrier est brûlé dans la dalle du convoyeur",
+        "trois longues pinces intactes restent suspendues hors de portée"
+      ]
+    },
+    {
+      "id": "dungeon-threshold-porte-sans-poignee-v1",
+      "file": "/scenes/dungeon/dungeon-threshold-porte-sans-poignee-v1.webp",
+      "locationType": "dungeon-threshold",
+      "variant": "handleless-door",
+      "usage": "run-location",
+      "requiredSceneTags": ["sealed-door"],
+      "visibleFacts": [
+        "une porte noire sans poignée est scellée par treize barres d'or",
+        "tous les verrous sont placés du côté visible",
+        "une vieille tache noire s'est répandue sous la porte"
+      ]
+    },
+    {
+      "id": "dungeon-inhabited-camp-coupe-cordes-v1",
+      "file": "/scenes/dungeon/dungeon-inhabited-camp-coupe-cordes-v1.webp",
+      "locationType": "inhabited-ruin",
+      "variant": "rope-cutter-camp",
+      "usage": "run-location",
+      "requiredSceneTags": ["brigand-camp"],
+      "visibleFacts": [
+        "quatre brigands occupent calmement une ruine aménagée",
+        "une chauve-souris de pierre est débitée sur une dalle pâle",
+        "un dormeur porte un pot renversé sur le visage"
+      ]
+    },
+    {
+      "id": "dungeon-calcined-dernier-repas-v1",
+      "file": "/scenes/dungeon/dungeon-calcined-dernier-repas-v1.webp",
+      "locationType": "archontic-refectory",
+      "variant": "last-meal",
+      "usage": "run-location",
+      "requiredSceneTags": ["calcined-remains", "calamine-warning"],
+      "visibleFacts": [
+        "un ancien Calciné est figé au bout d'une longue table noire",
+        "son torse et ses bras sont devenus une masse de cristal d'or",
+        "des bols noirs vides restent parfaitement alignés"
+      ]
+    },
+    {
+      "id": "dungeon-reliquary-deux-mains-v1",
+      "file": "/scenes/dungeon/dungeon-reliquary-deux-mains-v1.webp",
+      "locationType": "final-chamber",
+      "variant": "two-hand-reliquary",
+      "usage": "run-location",
+      "requiredSceneTags": ["artifact-chamber", "sealed-reliquary"],
+      "visibleFacts": [
+        "un reliquaire noir fermé repose sur un piédestal",
+        "une main ancienne demeure prise dans l'un des deux mécanismes",
+        "un gant vide est soigneusement plié au pied du piédestal"
+      ]
+    }
+  ],
+  "eventAssets": [
+    {
+      "id": "dungeon-event-calcine-embuscade-v1",
+      "file": "/scenes/dungeon/dungeon-event-calcine-embuscade-v1.webp",
+      "locationType": "archontic-ruin",
+      "variant": "ambush",
+      "usage": "run-event",
+      "requiredSceneTags": ["calcined-presence"],
+      "visibleFacts": [
+        "un Calciné attaque depuis une cloison brisée",
+        "son avant-bras cristallisé vient d'éclater contre la pierre",
+        "une cuillère reste soudée à sa joue"
+      ],
+      "eventType": "calcined-ambush",
+      "requiresEventMatch": true
+    },
+    {
+      "id": "dungeon-event-veilleur-reveil-v1",
+      "file": "/scenes/dungeon/dungeon-event-veilleur-reveil-v1.webp",
+      "locationType": "archontic-ruin",
+      "variant": "awakening",
+      "usage": "run-event",
+      "requiredSceneTags": ["watcher-vault"],
+      "visibleFacts": [
+        "un Veilleur arrache les entraves de son berceau mural",
+        "une fine lumière dorée traverse désormais sa fente oculaire",
+        "les os d'un ancien pillard tombent de son torse ouvert"
+      ],
+      "eventType": "watcher-awakening",
+      "requiresEventMatch": true
+    }
+  ]
+}

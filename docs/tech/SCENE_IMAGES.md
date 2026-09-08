@@ -15,7 +15,7 @@ source_of_truth: true
 GRIMOIRE utilise les images comme décors de la narration, pas comme sortie improvisée d'un modèle à
 chaque partie. La v0.2.1 ne génère aucune image pendant un tour, un run ou la découverte d'un lieu.
 
-Cette décision privilégie :
+La direction visuelle de production est définie dans [[ART_DIRECTION]]. Cette décision privilégie :
 
 - une direction artistique cohérente entre L'Aveugle, le comptoir, les voyages et les donjons ;
 - aucun temps d'attente lié à une génération ;
@@ -28,12 +28,27 @@ Cette décision privilégie :
 | Famille          | Cible       | Exemples                                                    |
 | ---------------- | ----------- | ----------------------------------------------------------- |
 | Auberge          | 6 à 8       | entrée, comptoir, L'Aveugle, contrats, forge, sac           |
-| Voyages          | 12 à 15     | routes, désert, rivage, marais, variations de lumière       |
-| Donjons          | 25 à 35     | ruines, cryptes, cavernes, profondeurs, salles remarquables |
-| **Total v0.2.1** | **45 à 60** | deux ou trois variantes par famille de décor                |
+| Voyages          | 8 à 10      | routes, désert, rivage, marais, variations de lumière       |
+| Donjons          | 16 à 20     | ruines, cryptes, cavernes, profondeurs, salles remarquables |
+| **Total v0.2.1** | **30 à 38** | plateaux de lieux réutilisables et quelques scènes fixes    |
 
 Une image peut servir à plusieurs scènes proches. La narration et l'état du monde rendent chaque
 scène unique ; l'image fournit le lieu, la lumière et la matière.
+
+Deux usages sont distingués :
+
+- **Auberge et événements fixes** : l'image peut montrer une interaction stable et connue, comme
+  le comptoir, la forge ou la remise d'un contrat, en vue subjective lorsqu'un PNJ s'adresse au
+  joueur ;
+- **voyages et donjons pendant un run** : l'image est par défaut un plateau environnemental sans
+  joueur, monstre actif ni action imposée, afin de rester compatible avec plusieurs narrations IA.
+  Elle peut montrer une population ambiante, un travail ordinaire, des traces anciennes de violence
+  et des objets mystiques dont la présence possède une fonction claire.
+
+Le personnage joueur n'est jamais visible, y compris sous forme de main, ombre ou reflet. Les PNJ
+peuvent habiter un plateau de run tant qu'ils décrivent le lieu plutôt qu'une action actuelle que la
+narration devrait obligatoirement reprendre. Les variantes plus narratives restent des assets
+événementiels et ne remplacent pas le décor générique de leur famille.
 
 ## Sélection
 
@@ -49,11 +64,27 @@ interface SceneImageDefinition {
   variant: string;
   url: string;
   fallbackId: string;
+  usage: "run-neutral" | "run-location" | "run-event";
+  requiredSceneTags?: string[];
+  visibleFacts: string[];
+  eventType?: string;
+  requiresEventMatch?: boolean;
 }
 ```
 
-Le backend choisit une image compatible avec la scène structurée actuelle. L'IA reçoit ce décor en
-contexte et écrit une prose compatible ; elle ne demande pas une image et ne construit pas sa clé.
+Le backend choisit une image compatible avec la scène structurée actuelle. Une image n'est éligible
+que si son `locationType` correspond et si tous ses `requiredSceneTags` existent dans les données de
+scène autoritaires. Un asset `run-event` marqué `requiresEventMatch` exige en plus une correspondance
+exacte de son `eventType`.
+
+Après la sélection, le narrateur reçoit les `visibleFacts` de l'image : uniquement des faits simples
+et incontestables déjà visibles, qu'il doit conserver dans sa prose sans leur inventer une fonction.
+L'IA ne demande pas une image, ne construit pas sa clé et ne peut pas rendre un asset plus spécifique
+que la scène structurée. En cas de doute ou de tag manquant, le résolveur choisit le fallback neutre
+de la famille.
+
+Exemple : une salle montrant un cadavre ancien ouvert sur une table exige le tag `mortuary`. Elle ne
+peut jamais illustrer une crypte générique, même si les deux partagent la même famille visuelle.
 
 ### Règle anti-spoiler
 
@@ -63,6 +94,10 @@ L'image représente uniquement **le lieu où se trouve déjà le personnage**. E
 - montrer un ennemi avant son apparition narrative ;
 - annoncer un trésor, un repos ou un piège à venir ;
 - encoder visuellement la profondeur ou la difficulté cachée.
+
+Elle ne doit pas non plus imposer une action actuelle que la prose IA pourrait contredire : traverser
+un pont, établir un camp, débarquer ou combattre exigent un identifiant événementiel explicite. Le
+plateau générique du lieu demeure neutre.
 
 ## Production et stockage
 

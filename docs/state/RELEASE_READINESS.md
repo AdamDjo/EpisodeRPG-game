@@ -74,6 +74,12 @@ gh issue list --milestone "v0.2.1 - Roguelike jouable" --state all
 
 Ordre de dépendance et rationale : [[PROJECT_STATUS]].
 
+État attendu après merge de la PR #299 : la bibliothèque visuelle v0.2.1 est prête avec 36 assets
+runtime validés, répartis entre Auberge, Voyages et Donjons. Les variantes d'action sont séparées
+des décors neutres et exigent une correspondance événementielle explicite. Ce jalon ne change pas
+le `NO-GO` : le résolveur déterministe #248 et les autres chantiers de la boucle roguelike restent à
+livrer avant le playtest de validation.
+
 ## Post-déploiement
 
 Profil complet (#136), Chronologie (#130), Galerie (#131), World Map (#127), linking
