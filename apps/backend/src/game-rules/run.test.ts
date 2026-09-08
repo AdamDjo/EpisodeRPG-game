@@ -17,17 +17,16 @@ import {
   WATER_PER_RETURN_ROOM,
 } from './run'
 
-import type { ContractDepth, QuestDuration, RunState } from '@grimoire/shared'
+import type { ContractDepth, QuestIntensity, RunState } from '@grimoire/shared'
 
-function contract(targetDepth: ContractDepth = 5) {
+function contract(intensity: QuestIntensity = 5) {
   return createContract({
     id: 'contract-1',
     family: 'dungeon',
     destination: 'Les Salines Basses',
     commissioner: 'La guilde du sel',
     danger: 'medium',
-    duration: 'long',
-    targetDepth,
+    intensity,
     rewardGold: 120,
     objective: 'Rapporter le sceau du contremaître',
     successCondition: 'Le sceau est dans le sac au retour',
@@ -35,14 +34,14 @@ function contract(targetDepth: ContractDepth = 5) {
 }
 
 /** A contract with no floors — the shape every non-dungeon family takes (#260). */
-function floorlessContract(duration: QuestDuration = 'long') {
+function floorlessContract(intensity: QuestIntensity = 5) {
   return createContract({
     id: 'contract-2',
     family: 'escort',
     destination: 'La route haute',
     commissioner: 'Un marchand pressé',
     danger: 'easy',
-    duration,
+    intensity,
     rewardGold: 80,
     objective: 'Escorter la caravane jusqu’au col',
     successCondition: 'La caravane atteint le col',
@@ -51,8 +50,8 @@ function floorlessContract(duration: QuestDuration = 'long') {
 }
 
 /** Run state sitting at `depth`, having descended there normally. */
-function atDepth(depth: number, targetDepth: ContractDepth = 7): RunState {
-  let state = createRunState(contract(targetDepth))
+function atDepth(depth: number, intensity: QuestIntensity = 7): RunState {
+  let state = createRunState(contract(intensity))
   for (let i = 0; i < depth; i++) state = descend(state)
   return state
 }
@@ -62,37 +61,38 @@ describe('createContract', () => {
     [3, 45],
     [5, 90],
     [7, 150],
-  ])('derives the target duration from depth %i → %i minutes', (depth, minutes) => {
-    expect(contract(depth as ContractDepth).targetDurationMinutes).toBe(minutes)
+  ])('derives the target duration from the intensity %i → %i minutes', (intensity, minutes) => {
+    expect(contract(intensity as QuestIntensity).targetDurationMinutes).toBe(minutes)
   })
 
   it.each([
-    ['short', 45],
-    ['long', 90],
-    ['major', 150],
-  ])('derives a floorless contract duration from the tag %s → %i minutes', (tag, minutes) => {
-    const built = floorlessContract(tag as QuestDuration)
-    expect(built.targetDurationMinutes).toBe(minutes)
-    expect(built.targetDepth).toBeUndefined()
+    [3, 45],
+    [5, 90],
+    [7, 150],
+  ])(
+    'gives a floorless contract the same length at intensity %i → %i minutes',
+    (intensity, minutes) => {
+      // The whole point of #269: an escort at 7 is as long a commitment as a
+      // delve at 7. Only the floors are dungeon-specific, never the length.
+      const built = floorlessContract(intensity as QuestIntensity)
+      expect(built.targetDurationMinutes).toBe(minutes)
+      expect(built.targetDepth).toBeUndefined()
+    }
+  )
+
+  it.each([
+    [3, 'short'],
+    [5, 'long'],
+    [7, 'major'],
+  ])('tags an intensity of %i as the duration %s', (intensity, tag) => {
+    expect(contract(intensity as QuestIntensity).duration).toBe(tag)
   })
 
-  it('refuses a depth on a family that has no floors', () => {
-    // A contract that is not a dungeon must not carry floors: accepting one
-    // silently would put a descent under a quest the run loop never descends.
-    expect(() =>
-      createContract({
-        id: 'c',
-        family: 'negotiation',
-        destination: 'd',
-        commissioner: 'c',
-        danger: 'hard',
-        duration: 'short',
-        targetDepth: 5,
-        rewardGold: 10,
-        objective: 'o',
-        successCondition: 's',
-      })
-    ).toThrow(/no floors/)
+  it('reads a dungeon depth off the intensity, and gives no floors to anyone else', () => {
+    // Depth is a *view* of intensity, not a second value: the two can never
+    // disagree because only one of them is ever supplied.
+    expect(contract(7).targetDepth).toBe(7)
+    expect(floorlessContract(7).targetDepth).toBeUndefined()
   })
 
   it('defaults failureConditions to empty — death is then the only way to lose', () => {
@@ -108,7 +108,7 @@ describe('a contract without floors (#260)', () => {
   })
 
   it('reports the contract duration as the remaining estimate', () => {
-    expect(estimateRemainingMinutes(createRunState(floorlessContract('short')))).toBe(45)
+    expect(estimateRemainingMinutes(createRunState(floorlessContract(3)))).toBe(45)
   })
 
   it('reports nothing left once the return is engaged', () => {

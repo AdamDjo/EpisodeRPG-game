@@ -147,6 +147,7 @@ describe('generateScene — N1 recent-turns loading', () => {
       destination: 'Les Salines Basses',
       objective: 'Rapporter le sceau du contremaître',
       targetDepth: 5 as const,
+      intensity: 5,
       currentDepth: 2,
       maxDepthReached: 2,
       mode: 'exploration' as const,

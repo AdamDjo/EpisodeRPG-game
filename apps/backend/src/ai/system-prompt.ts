@@ -32,9 +32,16 @@ export interface RunPromptContext {
   destination: string
   objective: string
   /**
-   * Floors the contract targets. Undefined for every non-dungeon family, which
-   * has none — the section then simply omits the depth rather than naming a
-   * number the run does not have (#260).
+   * How long the contract runs, on the universal 3-7 scale every family now
+   * carries (#269). The narrator gets it so a run can be paced — a third beat
+   * out of seven is not written like a last one — and is forbidden from ever
+   * printing it (§4).
+   */
+  intensity: number
+  /**
+   * The same length told as floors, for a `dungeon` only. Undefined elsewhere:
+   * a hunt is as long as a delve but does not *descend*, and the section says
+   * so rather than handing it a depth it has no fiction for (#260, #269).
    */
   targetDepth?: number
   currentDepth: number
@@ -416,8 +423,9 @@ function buildRunSection(run: RunPromptContext | null): string[] {
     '',
     'Run structure (the backend owns every value below — never contradict it):',
     run.targetDepth === undefined
-      ? `- Contract: "${run.objective}" at ${run.destination}. This contract has no floors —` +
-        ' never speak of descending, of paliers, or of a bottom to reach.'
+      ? `- Contract: "${run.objective}" at ${run.destination}. It runs about ${run.intensity} beats —` +
+        ' pace it to that length, but never speak of descending, of paliers, or of a bottom to' +
+        ' reach: this contract has no floors.'
       : `- Contract: "${run.objective}" at ${run.destination}. Target depth: ${run.targetDepth} floors.`,
     `- The character stands on floor ${run.currentDepth}, deepest reached ${run.maxDepthReached}.`,
     `- Current mode: ${run.mode}.`,

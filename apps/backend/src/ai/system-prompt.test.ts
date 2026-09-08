@@ -336,6 +336,7 @@ describe('run section', () => {
     return {
       destination: 'Les Salines Basses',
       objective: 'Rapporter le sceau du contremaître',
+      intensity: 5,
       targetDepth: 5,
       currentDepth: 2,
       maxDepthReached: 2,
@@ -371,12 +372,14 @@ describe('run section', () => {
     expect(promptWithRun(run())).toContain('Target depth: 5 floors')
   })
 
-  it('omits the depth entirely for a contract that has no floors', () => {
-    // An escort has no paliers, and a narrator handed a number invents one.
-    const prompt = promptWithRun(run({ targetDepth: undefined }))
+  it('gives a floorless contract its length without ever giving it a depth', () => {
+    // An escort has no paliers, and a narrator handed a floor count invents a
+    // descent. It still gets the length, so the run can be paced (#269).
+    const prompt = promptWithRun(run({ targetDepth: undefined, intensity: 7 }))
 
     expect(prompt).not.toContain('Target depth')
-    expect(prompt).toContain('This contract has no floors')
+    expect(prompt).toContain('It runs about 7 beats')
+    expect(prompt).toContain('this contract has no floors')
   })
 
   it('forbids a climactic set-piece on the way home', () => {

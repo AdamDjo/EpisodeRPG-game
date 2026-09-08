@@ -62,7 +62,8 @@ très dangereux, mais le système ne suppose jamais que toute quête est un donj
 | Destination         | Lieu ou personne vers laquelle la narration doit converger         |
 | Commanditaire       | Source et voix de la quête                                         |
 | Danger              | Niveau qualitatif utilisé pour la génération et l'équilibrage      |
-| Durée cible         | Engagement court, long ou majeur                                   |
+| Intensité           | Longueur du contrat sur l'échelle 3 / 5 / 7, toutes familles       |
+| Durée cible         | Engagement court, long ou majeur, lu depuis l'intensité            |
 | Récompense          | Paiement et conséquences en cas de réussite                        |
 | Conditions d'échec  | États qui rendent la quête impossible ou marquent le retour à vide |
 | État de progression | Étapes accomplies, objectif sécurisé, réussite ou échec            |
@@ -75,12 +76,32 @@ La **famille** de quête est fermée : `dungeon`, `escort`, `investigation`, `hu
 autres n'en ont aucune, et aucune règle du moteur n'a le droit de leur en inventer une pour combler
 un champ manquant (#260).
 
+### Deux axes, jamais confondus
+
+Un contrat est décrit par deux chiffres orthogonaux, et le mot « palier » ne désigne que le premier :
+
+| Axe                         | Question posée           | Échelle   | Où il vit                |
+| --------------------------- | ------------------------ | --------- | ------------------------ |
+| **Palier** (`danger`)       | À quel point c'est dur   | 0 – 9     | `CONTRACT_WEIGHT`, §2bis |
+| **Intensité** (`intensity`) | Combien de temps ça dure | 3 / 5 / 7 | `QuestIntensity`, ce §   |
+
+L'**intensité est universelle** : elle est portée par toutes les familles, pas seulement par les
+donjons (#269). Une chasse d'intensité 7 est un engagement aussi long qu'une descente d'intensité 7 ;
+elle n'a simplement pas d'étages. La **profondeur visée d'un donjon est une lecture de son
+intensité**, sur la même échelle et jamais une seconde valeur : les deux ne peuvent pas diverger
+puisqu'une seule est jamais fournie. Un contrat sans donjon ne porte donc aucune profondeur, mais il
+porte bien une longueur.
+
 Les deux tags sont **qualitatifs côté joueur, chiffrés côté moteur** :
 
-| Tag    | Valeurs affichées          | Ce qui reste interne                               |
-| ------ | -------------------------- | -------------------------------------------------- |
-| Danger | Facile / Moyen / Difficile | Le chiffrage qui pilote génération et équilibrage  |
-| Durée  | Court / Long / Majeur      | Les minutes cibles (45 / 90 / 150), et les paliers |
+| Tag    | Valeurs affichées          | Ce qui reste interne                                      |
+| ------ | -------------------------- | --------------------------------------------------------- |
+| Danger | Facile / Moyen / Difficile | Le palier qui pilote génération et équilibrage (§2bis)    |
+| Durée  | Court / Long / Majeur      | L'intensité (3 / 5 / 7) et ses minutes cibles (45/90/150) |
+
+L'intensité brute n'est **jamais projetée au client** : la couche de projection la retire du contrat
+et ne laisse passer que son tag qualitatif. Un chiffre envoyé à l'interface deviendrait le compte à
+rebours que §4 interdit.
 
 Le vocabulaire de danger est volontairement **neutre et ludique**, pas fictionnel : le joueur doit
 lire l'arbitrage d'un coup d'œil, et un label in-world (« routine », « funeste ») se lit comme de la
@@ -112,7 +133,8 @@ disponibles sans dépendre d'une décision du modèle IA.
 
 Le jeu n'interdit jamais un contrat selon l'équipement (§2 « Liberté et verrouillage »), mais il ne
 le rend jamais facile non plus. Chaque contrat porte un **palier** (`CONTRACT_WEIGHT`) chiffré à
-partir de son tag de danger : Facile = 3, Moyen = 6, Difficile = 9. Le personnage porte un **score de
+partir de son tag de danger : Facile = 3, Moyen = 6, Difficile = 9. Ce palier mesure la **difficulté**,
+jamais la longueur — celle-ci est l'intensité, sur son propre axe (§2 « Deux axes »). Le personnage porte un **score de
 puissance**, calculé à partir de son équipement effectivement porté :
 
 - l'arme en main principale (tier 0 à 3, catalogue fermé — `11-INVENTORY-ECONOMY.md` §4) ;
@@ -187,12 +209,19 @@ Pour la v0.2.1, l'interface ne révèle jamais :
 - la carte ou les connexions du donjon ;
 - une estimation chiffrée ou qualitative du retour.
 
-**Le narrateur, lui, connaît la profondeur visée** (#260). Elle lui est transmise dans son contexte
-pour qu'il sache écrire une descente qui va quelque part — le ton d'un troisième palier sur sept
-n'est pas celui d'un dernier. Cette interdiction porte donc sur l'**interface**, pas sur le prompt :
-l'IA reçoit le chiffre, et la règle qui lui reste opposable est de ne jamais l'**écrire** dans sa
-prose, ni de le transformer en compte à rebours. Un contrat sans paliers ne reçoit aucun chiffre du
-tout, et le prompt lui interdit alors explicitement de parler de descente ou de profondeur.
+**Le narrateur, lui, connaît la longueur visée** (#260, généralisé en #269). Elle lui est transmise
+dans son contexte pour qu'il sache écrire un run qui va quelque part — le ton d'un troisième temps
+sur sept n'est pas celui d'un dernier. Cette interdiction porte donc sur l'**interface**, pas sur le
+prompt : l'IA reçoit le chiffre, et la règle qui lui reste opposable est de ne jamais l'**écrire**
+dans sa prose, ni de le transformer en compte à rebours.
+
+Ce que reçoit le narrateur dépend de la famille, mais **il reçoit toujours une longueur** :
+
+- un **donjon** reçoit sa profondeur visée, en étages, parce que sa longueur _est_ une descente ;
+- une famille **sans étages** reçoit son intensité en temps narratifs, avec l'interdiction
+  explicite de parler de descente, de paliers ou d'un fond à atteindre. Elle n'est plus laissée
+  sans repère de longueur, comme c'était le cas avant #269 : un contrat dont le narrateur ignore
+  la durée se termine quand le modèle s'en lasse.
 
 Le risque assumé est connu : un modèle à qui l'on donne un nombre a tendance à l'imprimer. Si la
 prose se met à annoncer « il reste quatre paliers », c'est cette transmission qu'il faudra retirer,

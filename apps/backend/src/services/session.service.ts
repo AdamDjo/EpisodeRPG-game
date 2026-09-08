@@ -7,7 +7,7 @@ import {
   type Choice,
   type CombatAction,
   type CombatState,
-  type ContractDepth,
+  type QuestIntensity,
   type QuestDanger,
   type QuestDuration,
   type QuestFamily,
@@ -597,6 +597,7 @@ async function resolveCombatTurnForSession(
       ? {
           destination: run.next.contract.destination,
           objective: run.next.contract.objective,
+          intensity: run.next.contract.intensity,
           targetDepth: run.next.contract.targetDepth,
           currentDepth: run.next.currentDepth,
           maxDepthReached: run.next.maxDepthReached,
@@ -763,6 +764,7 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
       ? {
           destination: run.next.contract.destination,
           objective: run.next.contract.objective,
+          intensity: run.next.contract.intensity,
           targetDepth: run.next.contract.targetDepth,
           currentDepth: run.next.currentDepth,
           maxDepthReached: run.next.maxDepthReached,
@@ -1136,11 +1138,10 @@ async function endSession(
  * Starts a run: the player accepts a contract at the inn and sets out.
  *
  * The contract is built by the backend from validated input — the client never
- * supplies a duration in minutes or a room count, both of which are derived.
- * A depth arrives only with a `dungeon` family, the schema having already
- * rejected any other pairing (#260). Only an active session still at the inn
- * may leave; a session already underground cannot silently swap contracts
- * mid-run.
+ * supplies a duration in minutes or a room count, both of which are derived
+ * from the one length it does supply, the intensity (#269). Only an active
+ * session still at the inn may leave; a session already underground cannot
+ * silently swap contracts mid-run.
  * @see docs/canon/23-RUN-STRUCTURE.md §1, §2
  */
 export async function startRun(
@@ -1152,7 +1153,7 @@ export async function startRun(
     commissioner: string
     danger: QuestDanger
     duration: QuestDuration
-    targetDepth?: ContractDepth
+    intensity: QuestIntensity
     rewardGold: number
     objective: string
     successCondition: string
@@ -1167,18 +1168,7 @@ export async function startRun(
     return null
   }
 
-  // `targetDepth` is spread only when present, so a non-dungeon contract is
-  // built without the key at all rather than with an explicit `undefined`. Both
-  // read the same to `createContract`'s guard today; keeping the key out means
-  // that stays true if the guard ever tightens to a `in`-style check.
-  const { targetDepth, ...rest } = contract
-  const state = createRunState(
-    createContract({
-      id: randomUUID(),
-      ...rest,
-      ...(targetDepth === undefined ? {} : { targetDepth }),
-    })
-  )
+  const state = createRunState(createContract({ id: randomUUID(), ...contract }))
 
   const updated = await prisma.gameSession.update({
     where: { id: session.id },

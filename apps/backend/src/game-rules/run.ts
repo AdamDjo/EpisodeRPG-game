@@ -1,12 +1,14 @@
 import {
-  type ContractDepth,
   CONTRACT_DURATION_MINUTES,
+  type ContractDepth,
+  depthForIntensity,
   MAX_CONTRACT_DEPTH,
   MIN_CONTRACT_DEPTH,
-  QUEST_DURATION_MINUTES,
+  QUEST_DURATION_FOR_INTENSITY,
   type QuestDanger,
   type QuestDuration,
   type QuestFamily,
+  type QuestIntensity,
   type ReturnEstimate,
   type ReturnRisk,
   type RunContract,
@@ -55,11 +57,14 @@ export interface CarriedSupplies {
 /**
  * Builds the run contract accepted at the inn.
  *
- * A depth is accepted only for a dungeon: passing one with any other family is
- * a caller bug, and silently keeping it would put floors on a contract the run
- * loop never descends. The minutes are derived — from the depth when there is
- * one, from the duration tag otherwise — so the two kinds of contract answer
- * the duration question in the same unit without either inventing the other's.
+ * `intensity` is the single source of length, carried by every family (#269).
+ * `targetDepth` is derived from it for a `dungeon` and omitted for everyone
+ * else, so a quest with no floors can never grow one — and a dungeon can never
+ * hold a depth that disagrees with its own intensity.
+ *
+ * No intensity is ever invented: a caller that omits it gets an error rather
+ * than a default, because a fabricated length would silently mis-size the event
+ * budget derived from it (#260's rule, extended to the universal unit).
  * @see 23-RUN-STRUCTURE.md §1, §2
  */
 export function createContract(params: {
@@ -68,18 +73,15 @@ export function createContract(params: {
   destination: string
   commissioner: string
   danger: QuestDanger
-  duration: QuestDuration
-  targetDepth?: ContractDepth
+  duration?: QuestDuration
+  intensity: QuestIntensity
   rewardGold: number
   objective: string
   successCondition: string
   failureConditions?: string[]
 }): RunContract {
-  if (params.family !== 'dungeon' && params.targetDepth !== undefined) {
-    throw new Error(`A ${params.family} contract has no floors: targetDepth is dungeon-only`)
-  }
-
-  const targetDepth = params.family === 'dungeon' ? params.targetDepth : undefined
+  // A dungeon's floors *are* its intensity, read on the same 3-7 scale.
+  const targetDepth = params.family === 'dungeon' ? depthForIntensity(params.intensity) : undefined
 
   return {
     id: params.id,
@@ -87,12 +89,10 @@ export function createContract(params: {
     destination: params.destination,
     commissioner: params.commissioner,
     danger: params.danger,
-    duration: params.duration,
+    duration: params.duration ?? QUEST_DURATION_FOR_INTENSITY[params.intensity],
+    intensity: params.intensity,
     ...(targetDepth === undefined ? {} : { targetDepth }),
-    targetDurationMinutes:
-      targetDepth === undefined
-        ? QUEST_DURATION_MINUTES[params.duration]
-        : CONTRACT_DURATION_MINUTES[targetDepth],
+    targetDurationMinutes: CONTRACT_DURATION_MINUTES[params.intensity],
     rewardGold: params.rewardGold,
     objective: params.objective,
     successCondition: params.successCondition,
@@ -224,8 +224,10 @@ export function estimateRemainingMinutes(state: RunState): number {
   const targetDepth = state.contract.targetDepth
 
   // No floors, no descent to price. The contract's own target is the only
-  // honest answer here — deriving one from rooms would mean inventing a
-  // dungeon under a quest that has none (#260).
+  // honest answer here — pricing it in rooms would mean inventing a dungeon
+  // under a quest that has none (#260). The target itself is now derived from
+  // the universal intensity, so this branch is no longer a weaker estimate
+  // than the dungeon one, just a floorless one (#269).
   if (targetDepth === undefined) {
     return state.returnEngaged ? 0 : state.contract.targetDurationMinutes
   }
