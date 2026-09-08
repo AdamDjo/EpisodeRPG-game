@@ -246,6 +246,12 @@ calcined`. L'ancien `inn` confondait « rentré avec l'objectif » (payé) et «
   décrit plus le jeu après la refonte.
 - Premier build Coolify à vérifier (cf. Dockerfile ci-dessus).
 
+- **Une mécanique livrée sans écran n'est pas jouable.** Audit du 2026-09-08 : le palier, l'effet de
+  l'équipement porté et la succession étaient entièrement livrés côté serveur et invisibles côté
+  joueur. Le backend avance plus vite que le frontend n'expose, et l'écart ne se voit dans aucun
+  test. En livrant une mécanique visible par le joueur, ouvrir le ticket frontend dans la foulée
+  (#302, #303, #304 comblent le retard constaté) — le décalage se rattrape mal une fois installé.
+
 ## Règles de tenue de ce fichier
 
 - On y écrit **pourquoi**, pas **quoi** ni **quand**. L'avancement vit sur GitHub, la chronologie
