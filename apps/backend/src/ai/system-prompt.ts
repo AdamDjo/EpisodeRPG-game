@@ -9,6 +9,7 @@ import type {
   Character,
   CombatAction,
   CombatOutcome,
+  DeathIntensity,
   FleeDirection,
   GameMode,
   KnockoutVerdict,
@@ -63,6 +64,13 @@ export interface CombatPromptContext {
   outcome: CombatOutcome | null
   /** How losing was arbitrated (§8), when the fight ended in defeat. */
   knockoutVerdict?: KnockoutVerdict
+  /**
+   * How graphically a `dead` verdict must be narrated, from the equipment-vs-
+   * danger gap (§2bis). Only meaningful alongside `knockoutVerdict: 'dead'` —
+   * a fixed instruction, not a tone the AI is free to pick.
+   * @see docs/canon/23-RUN-STRUCTURE.md §2bis
+   */
+  deathIntensity?: DeathIntensity
   fleeDirection?: FleeDirection
 }
 
@@ -518,6 +526,18 @@ function buildCombatSection(combat: CombatPromptContext | null): string[] {
           ? '- The player FELL and was TAKEN PRISONER, not killed. Narrate the capture, not a death.'
           : '- The player FELL and DIED. Narrate the death. Do not soften it, do not leave a way out.'
     lines.push(verdict)
+
+    if (combat.knockoutVerdict === 'dead') {
+      // §2bis: the equipment-vs-danger gap fixes how graphic the death reads,
+      // the same way it fixed the verdict above — not a tone for the AI to pick.
+      const intensity =
+        combat.deathIntensity === 'gore_total'
+          ? '- Death intensity: GORE TOTAL. Do not cut away. Describe the wound and the body in full, unflinching detail.'
+          : combat.deathIntensity === 'brutal'
+            ? '- Death intensity: BRUTAL. Do not sanitize it — show the violence plainly, without lingering past it.'
+            : '- Death intensity: SOBER. State the death plainly, without gratuitous gore.'
+      lines.push(intensity)
+    }
   }
 
   lines.push(

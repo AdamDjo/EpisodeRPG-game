@@ -60,3 +60,21 @@ export function armourBonusForItemName(name: string | undefined): number {
   if (!name) return NO_ARMOUR_BONUS;
   return ARMOUR_CATALOGUE[name]?.armourBonus ?? NO_ARMOUR_BONUS;
 }
+
+/**
+ * Resolves the equipped weapon's tier (0-3). Same fallback rule as
+ * {@link weaponDamageForItemName} — an unknown or absent name is tier 0.
+ */
+export function weaponTierForItemName(name: string | undefined): 0 | 1 | 2 | 3 {
+  if (!name) return 0;
+  return WEAPON_CATALOGUE[name]?.tier ?? 0;
+}
+
+/**
+ * Resolves the equipped armour's tier (0-3). Same fallback rule as
+ * {@link armourBonusForItemName} — an unknown or absent name is tier 0.
+ */
+export function armourTierForItemName(name: string | undefined): 0 | 1 | 2 | 3 {
+  if (!name) return 0;
+  return ARMOUR_CATALOGUE[name]?.tier ?? 0;
+}

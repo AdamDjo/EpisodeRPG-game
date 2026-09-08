@@ -1,3 +1,4 @@
+import { projectPowerGap } from '../game-rules/power-balance'
 import {
   type CarriedSupplies,
   computeReturnEstimate,
@@ -17,6 +18,7 @@ import type { GameSession } from '../generated/prisma/client'
 import type {
   ContractDepth,
   GameMode,
+  PowerGapProjection,
   QuestDanger,
   QuestDuration,
   QuestFamily,
@@ -260,10 +262,21 @@ export interface RunProjection {
   canDescend: boolean
   /** True once the player has climbed back out and the run can be settled. */
   atSurface: boolean
+  /**
+   * Equipment-vs-danger read-out for this contract, recomputed from the
+   * carried inventory on every scene — not persisted, since it can only ever
+   * change alongside the inventory that feeds it.
+   * @see docs/canon/23-RUN-STRUCTURE.md §2bis
+   */
+  powerGapProjection: PowerGapProjection
 }
 
 /** Builds the client-facing run snapshot from a state and the carried supplies. */
-export function projectRun(state: RunState, supplies: CarriedSupplies): RunProjection {
+export function projectRun(
+  state: RunState,
+  supplies: CarriedSupplies,
+  inventory: PersistedInventoryItem[]
+): RunProjection {
   return {
     contract: state.contract,
     mode: state.mode,
@@ -275,6 +288,7 @@ export function projectRun(state: RunState, supplies: CarriedSupplies): RunProje
     estimatedRemainingMinutes: estimateRemainingMinutes(state),
     canDescend: canDescendState(state),
     atSurface: hasReachedSurface(state),
+    powerGapProjection: projectPowerGap(inventory, state.contract.danger),
   }
 }
 

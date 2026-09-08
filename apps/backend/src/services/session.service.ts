@@ -36,6 +36,7 @@ import {
 } from '../game-rules/conditions'
 import { resolveChoice } from '../game-rules/consequences'
 import { acquireItem, equipItem, unequipItem, useItem } from '../game-rules/inventory'
+import { projectPowerGap } from '../game-rules/power-balance'
 import { applyRest } from '../game-rules/rest'
 import { createContract, createRunState, engageReturn } from '../game-rules/run'
 import { applyTurnUpkeep, clearDyingOnHeal } from '../game-rules/survival'
@@ -265,7 +266,7 @@ function runProjectionFor(
 ): Pick<SceneResponse, 'run'> {
   const state = readRunState(session)
   if (!state) return {}
-  return { run: projectRun(state, countCarriedSupplies(inventory)) }
+  return { run: projectRun(state, countCarriedSupplies(inventory), inventory) }
 }
 
 async function resumeLatestScene({
@@ -593,7 +594,14 @@ async function resolveCombatTurnForSession(
           warnings: [],
         }
       : null,
-    combat: toCombatPromptContext(turn.state, translated.action, turn.entriesThisTurn),
+    combat: {
+      ...toCombatPromptContext(turn.state, translated.action, turn.entriesThisTurn),
+      // §2bis: computed live from the carried inventory, same as `powerGapProjection` —
+      // never persisted, and only meaningful once the fight has ended in death.
+      ...(turn.state.knockoutVerdict === 'dead' && run
+        ? { deathIntensity: projectPowerGap(inventory, run.next.contract.danger).deathIntensity }
+        : {}),
+    },
   })
 
   const nextTurn = session.turnNumber + 1
@@ -679,7 +687,7 @@ async function resolveCombatTurnForSession(
     notifications: [],
     source: gm.source,
     combat: projectCombatState(turn.state, turn.result),
-    ...(run ? { run: projectRun(run.next, countCarriedSupplies(inventory)) } : {}),
+    ...(run ? { run: projectRun(run.next, countCarriedSupplies(inventory), inventory) } : {}),
   }
 }
 
@@ -852,6 +860,18 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
 
   const runOver = gameOver || returnEnding !== null
 
+  // The reward is only owed on a genuine extraction, and it is scaled by how
+  // outmatched the gear was for the danger accepted — farming the low tiers
+  // pays 40% less, an underequipped extraction pays up to 60% more.
+  // @see docs/canon/23-RUN-STRUCTURE.md §2bis
+  const rewardGold =
+    endReason === 'extracted' && run
+      ? Math.round(
+          run.next.contract.rewardGold *
+            projectPowerGap(finalInventory, run.next.contract.danger).rewardMultiplier
+        )
+      : 0
+
   await prisma.$transaction([
     prisma.sceneLog.create({
       data: {
@@ -880,6 +900,7 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
         neglectStreak: restedSurvival.neglectStreak,
         activeConditions: finalConditions as unknown as object,
         inventory: finalInventory as unknown as object,
+        ...(rewardGold > 0 ? { gold: { increment: rewardGold } } : {}),
       },
     }),
     prisma.gameSession.update({
@@ -949,7 +970,7 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
   return {
     activeConditions: finalConditions,
     ...(endReason ? { endReason } : {}),
-    gold: character.gold,
+    gold: character.gold + rewardGold,
     scene,
     survival: restedSurvival,
     updatedStats: toStatsRecord(restedSurvival),
@@ -963,7 +984,9 @@ export async function resolveTurn(input: ResolveTurnInput): Promise<SceneRespons
     // Projected from the inventory as it stands *after* the turn, so the panel
     // the player reads before deciding to descend reflects what they actually
     // carry now.
-    ...(run ? { run: projectRun(run.next, countCarriedSupplies(finalInventory)) } : {}),
+    ...(run
+      ? { run: projectRun(run.next, countCarriedSupplies(finalInventory), finalInventory) }
+      : {}),
   }
 }
 

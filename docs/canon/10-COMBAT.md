@@ -352,6 +352,11 @@ L'IA décide du sort selon le contexte :
 - 🟢 **Héritage transmis** : 1 artefact + écho réputation (voir `11-INVENTORY-ECONOMY §5`)
 - 🟢 Retour à l'auberge avec le **successeur** (voir `07-CHARACTER-CREATION §7`)
 
+Le verdict `dead` a une intensité narrative — sobre, brutale ou gore total — dictée par l'écart entre
+l'équipement du personnage et le palier du contrat, jamais par un choix de l'IA (`23-RUN-STRUCTURE
+§2bis`). Un personnage nettement sous-équipé pour son contrat meurt sans filtre ; un personnage bien
+préparé meurt sobrement même en cas d'échec.
+
 🔴 _Anti-règle : pas de "second souffle", pas de potion de revie. La mort, c'est la mort. C'est ce qui rend le combat **tendu**._
 
 ---
