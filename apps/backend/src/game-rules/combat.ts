@@ -1,4 +1,4 @@
-import { attributeModifier } from '@grimoire/shared'
+import { attributeModifier, FISTS_DAMAGE } from '@grimoire/shared'
 
 import { getCreature } from './bestiary'
 import { resolveDying } from './survival'
@@ -174,13 +174,22 @@ export function resolveKnockout(context: KnockoutContext): KnockoutVerdict {
 // ─── The SOUFFLE tempo (§4, §7) ─────────────────────────────────────────────
 
 /**
- * Base armour class from the SOUFFLE modifier, before any armour bonus.
- * Not a linear `10 + mod`: canon steepens the curve past +1 so the tempo
- * payoff at +2 (the bonus action) also reads on the defensive side.
+ * Armour class: the SOUFFLE base plus the worn armour's bonus.
+ *
+ * The base is not a linear `10 + mod`: canon steepens the curve past +1 so the
+ * tempo payoff at +2 (the bonus action) also reads on the defensive side. The
+ * armour bonus (#266) stacks on top of that base rather than replacing it —
+ * flattening the curve back to `10 + mod + bonus` would undo the #265
+ * calibration the bestiary's turns-to-die ratios are tuned against.
  * @see 10-COMBAT.md §4
  */
-export function armourClassFromBreath(breath: number): number {
+export function armourClassFromBreath(breath: number, armourBonus = 0): number {
   const mod = attributeModifier(breath)
+  return breathArmourBase(mod) + armourBonus
+}
+
+/** The SOUFFLE half of the CA, before equipment. @see 10-COMBAT.md §4 */
+function breathArmourBase(mod: number): number {
   if (mod <= -1) return 10
   if (mod === 0) return 11
   if (mod === 1) return 13
@@ -367,14 +376,14 @@ function hasPresenceOver(state: CombatState, enemy: CombatEnemy): boolean {
 }
 
 /** The player's bare-handed / default weapon die when none is supplied. */
-const DEFAULT_WEAPON: DamageDice = { count: 1, faces: 6, bonus: 0 }
+const DEFAULT_WEAPON: DamageDice = FISTS_DAMAGE
 
 export interface PlayerTurnInput {
   state: CombatState
   action: CombatAction
   /** Which enemy is targeted. Defaults to the first living one. */
   targetId?: string
-  /** The weapon die for an attack. Defaults to a d6. */
+  /** The weapon die for an attack. Defaults to fists (1d4). */
   weapon?: DamageDice
   /** Which way the player runs. Required for `flee`. */
   fleeDirection?: FleeDirection

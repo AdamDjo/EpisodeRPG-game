@@ -21,3 +21,4 @@ export * from "./constants/peoples";
 export * from "./constants/vocations";
 export * from "./constants/conditions";
 export * from "./constants/counter-catalogue";
+export * from "./constants/equipment-catalogue";
