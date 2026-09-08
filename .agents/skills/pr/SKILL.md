@@ -94,10 +94,14 @@ Exécuter dans l'ordre :
    - Fichiers dans `apps/backend/` ou `packages/shared/` → `domain: backend`.
    - Fichiers d'orchestration/prompt/provider IA → ajouter `domain: ai`.
    - Reprendre depuis l'issue liée la version de release : `release: v0.2`.
-   - Ces trois axes — `domain: *`, `phase: *`, `release: *` — sont les **seuls** labels du repo, avec
-     `status: blocked`. Ne jamais créer un label absent de `gh label list` : les familles `type:`,
-     `priority:`, `size:`, `epic:` et les domaines `shared`/`database`/`devops` ont été supprimés le
+   - Reprendre depuis l'issue liée son label d'épic : `epic: #<n> <mot-clé>`.
+   - Ces quatre axes — `epic: *`, `domain: *`, `phase: *`, `release: *` — sont les **seuls** labels du
+     repo, avec `status: blocked`. Ne jamais créer un label absent de `gh label list` : les familles
+     `type:`, `priority:`, `size:` et les domaines `shared`/`database`/`devops` ont été supprimés le
      2026-08-08 et ne doivent pas ressusciter.
+   - Le label `epic: *` est un **reflet** du marqueur `Épic : #N` en tête du body du ticket, qui reste
+     la source unique. En cas de divergence, ne pas arbitrer : relancer
+     `~/.claude/bin/sync-epic-labels.sh`, qui réaligne les labels sur les marqueurs.
 
 8. **Créer la PR via `gh pr create`**
    - owner: `AdamDjo`
