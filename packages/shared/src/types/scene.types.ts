@@ -191,6 +191,17 @@ export interface RestProposal {
 }
 
 /**
+ * The AI signals that no other narrative path exists and the player is
+ * forcing one open via Emprise. The backend is the sole authority on whether
+ * this can even be attempted — it re-checks the live charge count and drops
+ * the proposal silently at 0 charges.
+ * @see docs/canon/04-ATTRIBUTES.md "Les charges d'Emprise" §"Garde-fous"
+ */
+export interface BreakDeadlockProposal {
+  reason: string;
+}
+
+/**
  * Mechanical fields the AI may propose alongside its narration. The AI never
  * applies these itself — the backend validates and decides. Silent rejection
  * on validation failure: narration stays, the mechanical effect is dropped.
@@ -200,6 +211,7 @@ export interface AiSceneProposal {
   applyCondition?: ConditionProposal;
   itemGained?: ItemGained;
   restRequested?: RestProposal;
+  breakDeadlock?: BreakDeadlockProposal;
 }
 
 export interface InventoryItemRef {

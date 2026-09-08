@@ -72,6 +72,7 @@ function makeSurvival(overrides: Partial<SurvivalStats> = {}): SurvivalStats {
     calamine: 0,
     isDying: false,
     neglectStreak: 0,
+    empriseCharges: 0,
     ...overrides,
   }
 }
@@ -469,7 +470,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const soldier = instantiateEnemy('soldier', 'e1')
     const result = resolvePlayerTurn({
       state: makeState({ enemies: [soldier] }),
-      action: 'command',
+      action: 'submit_enemy',
       // Enemy face 2, then the player's face 19.
       rng: scriptedRng([faceOf(2), faceOf(19)]),
     })
@@ -483,7 +484,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const civilian = instantiateEnemy('civilian', 'e1')
     const result = resolvePlayerTurn({
       state: makeState({ enemies: [civilian] }),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(2), faceOf(19)]),
     })
     expect(result.state.enemies[0].isAlive).toBe(false)
@@ -494,7 +495,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const enemies = [instantiateEnemy('soldier', 'e1'), instantiateEnemy('soldier', 'e2')]
     const result = resolvePlayerTurn({
       state: makeState({ enemies }),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(1), faceOf(20)]),
     })
     const shaken = result.state.enemies.filter((e) => e.combatConditions.includes('frightened'))
@@ -505,7 +506,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
     const watcher = instantiateEnemy('watcher', 'e1')
     const result = resolvePlayerTurn({
       state: makeState({ enemies: [watcher] }),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(1), faceOf(20)]),
     })
     expect(result.state.enemies[0].combatConditions).not.toContain('frightened')
@@ -515,7 +516,7 @@ describe('the VOLONTÉ Leader role (§5)', () => {
   it('galvanises the camp on a critical failure', () => {
     const result = resolvePlayerTurn({
       state: makeState(),
-      action: 'command',
+      action: 'submit_enemy',
       rng: scriptedRng([faceOf(10), faceOf(1)]),
     })
     expect(result.state.galvanised).toBe(true)
@@ -853,13 +854,16 @@ describe('the SOUFFLE tempo (§4, §7, #265)', () => {
     expect(hasBonusAction(18, () => 0.99)).toBe(true) // mod +4
   })
 
-  // Speed repeats a swing or a shout; it never duplicates a resource. Awakening
-  // an artefact is capped at once per scene (11-INVENTORY-ECONOMY §5), an item
-  // is consumed once, defending would stack its bandage heal, and fleeing has
-  // already resolved in full by the time a second action could run.
+  // Speed repeats a swing; it never duplicates a resource. Awakening an artefact
+  // is capped at once per scene (11-INVENTORY-ECONOMY §5), an item is consumed
+  // once, defending would stack its bandage heal, and fleeing has already
+  // resolved in full by the time a second action could run. The Emprise actions
+  // each cost a charge (#267, §5bis), so repeating one would spend it twice.
   it('only repeats the actions that are a matter of tempo', () => {
     expect(isRepeatableAsBonusAction('attack')).toBe(true)
-    expect(isRepeatableAsBonusAction('command')).toBe(true)
+    expect(isRepeatableAsBonusAction('command')).toBe(false)
+    expect(isRepeatableAsBonusAction('submit_enemy')).toBe(false)
+    expect(isRepeatableAsBonusAction('force_awaken_artefact')).toBe(false)
     expect(isRepeatableAsBonusAction('awaken_artefact')).toBe(false)
     expect(isRepeatableAsBonusAction('use_item')).toBe(false)
     expect(isRepeatableAsBonusAction('defend')).toBe(false)

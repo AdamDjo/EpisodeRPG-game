@@ -1,5 +1,7 @@
 import { attributeModifier } from '@grimoire/shared'
 
+import { maxEmpriseCharges } from './emprise'
+
 import type { PersistedInventoryItem, SurvivalStats } from '@grimoire/shared'
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -75,12 +77,18 @@ function rollDie(sides: number, rng: () => number): number {
  *
  * All gauges clamp to [0, 100] (HP clamps to `maxHp`). Rest risk (ambush) is
  * explicitly deferred to a future ticket — this function is always safe.
+ *
+ * A fire rest also recharges Emprise charges to the character's max (derived
+ * from `willAttribute`). This is purely additive: it never touches Calamine —
+ * the -10 fire-rest drain above is a separate, unrelated cost.
+ * @see docs/canon/04-ATTRIBUTES.md "Rechargement"
  */
 export function applyRest(
   type: RestType,
   survival: SurvivalStats,
   items: PersistedInventoryItem[],
   bloodAttribute: number,
+  willAttribute: number,
   { hasProvisions, rng = Math.random }: RestOptions
 ): RestResult {
   const rates = REST_RATES[type]
@@ -95,6 +103,9 @@ export function applyRest(
   const hungerGain = hasProvisions ? rates.hunger : 0
   const thirstGain = hasProvisions ? rates.thirst : 0
 
+  const empriseCharges =
+    type === 'fire' ? maxEmpriseCharges(attributeModifier(willAttribute)) : survival.empriseCharges
+
   return {
     survival: {
       ...survival,
@@ -103,6 +114,7 @@ export function applyRest(
       thirst: clamp(survival.thirst + thirstGain, 0, 100),
       hp: clamp(survival.hp + healRolled, 0, survival.maxHp),
       calamine: clamp(survival.calamine + rates.calamine, 0, 100),
+      empriseCharges,
     },
     healRolled,
   }

@@ -1,0 +1,1 @@
+ALTER TABLE "Character" ADD COLUMN "empriseCharges" INTEGER NOT NULL DEFAULT 0;

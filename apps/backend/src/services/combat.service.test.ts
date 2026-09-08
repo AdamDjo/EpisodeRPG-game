@@ -45,6 +45,7 @@ function makeSurvival(overrides: Partial<SurvivalStats> = {}): SurvivalStats {
     calamine: 0,
     isDying: false,
     neglectStreak: 0,
+    empriseCharges: 0,
     ...overrides,
   }
 }
@@ -274,10 +275,12 @@ describe('resolving a full exchange', () => {
       })
     }
 
+    // One charge in hand, so the Emprise-gated actions actually reach the engine
+    // instead of being turned away by the 0-charge guard.
     function playerEntries(action: CombatAction) {
       const output = resolveCombatTurn({
         state: makeSwiftState({ enemies: [instantiateEnemy('watcher', 'e1')] }),
-        survival: makeSurvival(),
+        survival: makeSurvival({ empriseCharges: 1 }),
         action,
         itemHealing: action === 'use_item' ? 6 : undefined,
         rng: () => 0.1,
@@ -289,8 +292,11 @@ describe('resolving a full exchange', () => {
       expect(playerEntries('attack')).toHaveLength(2)
     })
 
-    it('lets speed shout an order twice', () => {
-      expect(playerEntries('command')).toHaveLength(2)
+    // `command` cost nothing when #265 made it repeatable. Emprise (#267) gave it
+    // a charge and a Calamine price, so a second shout on one charge would be a
+    // free duplicate of a spent resource — tempo must not buy that.
+    it('never shouts a second order on a single Emprise charge', () => {
+      expect(playerEntries('command')).toHaveLength(1)
     })
 
     // Canon caps artefact awakening at once per scene (10-COMBAT §3,
@@ -333,6 +339,50 @@ describe('resolving a full exchange', () => {
       })
       expect(output.entriesThisTurn).toHaveLength(1)
       expect(output.result?.outcome).toBe('victory')
+    })
+  })
+
+  // Canon puts the 0-charge guard on the choices the AI offers, never here: an
+  // Emprise action must already be unavailable before the player can pick it.
+  // These cover the engine's defensive half of that contract (#267).
+  describe('the Emprise charge guard (#267)', () => {
+    const empriseActions: CombatAction[] = ['command', 'submit_enemy', 'force_awaken_artefact']
+
+    it.each(empriseActions)('turns %s away at 0 charges, changing nothing', (action) => {
+      const state = makeState({ enemies: [instantiateEnemy('watcher', 'e1')] })
+      const survival = makeSurvival({ empriseCharges: 0 })
+
+      const output = resolveCombatTurn({ state, survival, action, rng: () => 0.1 })
+
+      expect(output.entriesThisTurn).toEqual([])
+      expect(output.state).toBe(state)
+      expect(output.survival).toBe(survival)
+      expect(output.result).toBeNull()
+    })
+
+    it.each(empriseActions)('spends exactly one charge on %s', (action) => {
+      const output = resolveCombatTurn({
+        state: makeState({ enemies: [instantiateEnemy('watcher', 'e1')] }),
+        survival: makeSurvival({ empriseCharges: 2, calamine: 0 }),
+        action,
+        rng: () => 0.1,
+      })
+
+      expect(output.survival.empriseCharges).toBe(1)
+      // WILL 10 = mod 0 = resistance 1, so the base cost is paid minus one.
+      expect(output.survival.calamine).toBeGreaterThan(0)
+    })
+
+    // An unpriced action must not touch the reserve on its way through.
+    it('leaves the charges alone on an ordinary attack', () => {
+      const output = resolveCombatTurn({
+        state: makeState({ enemies: [instantiateEnemy('watcher', 'e1')] }),
+        survival: makeSurvival({ empriseCharges: 2 }),
+        action: 'attack',
+        rng: () => 0.1,
+      })
+
+      expect(output.survival.empriseCharges).toBe(2)
     })
   })
 })
@@ -478,12 +528,12 @@ describe('opening a fight from what the AI narrated (§1)', () => {
 
 describe('projecting to the client', () => {
   it('always offers the escape hatch', () => {
-    expect(projectCombatState(makeState()).canFlee).toBe(true)
+    expect(projectCombatState(makeState(), makeSurvival()).canFlee).toBe(true)
   })
 
   it('projects the fight without asking the client to recompute a rule', () => {
     const state = makeState({ round: 3, activeSide: 'enemy' })
-    const snapshot = projectCombatState(state)
+    const snapshot = projectCombatState(state, makeSurvival())
     expect(snapshot.round).toBe(3)
     expect(snapshot.activeSide).toBe('enemy')
     expect(snapshot.result).toBeUndefined()

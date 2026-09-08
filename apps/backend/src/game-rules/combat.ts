@@ -220,14 +220,19 @@ export function hasBonusAction(breath: number, rng: () => number): boolean {
 }
 
 /**
- * The actions a bonus action may repeat. Speed lets a fast character strike or
- * shout twice; it does not duplicate a resource. `awaken_artefact` is capped at
+ * The actions a bonus action may repeat. Speed lets a fast character strike
+ * twice; it does not duplicate a resource. `awaken_artefact` is capped at
  * once per scene by canon, `use_item` would consume one item and heal twice,
  * `defend` would stack its bandage heal, and `flee` already resolves the whole
  * attempt in one go — none of them are a matter of tempo.
- * @see 10-COMBAT.md §3, §4, 11-INVENTORY-ECONOMY §5
+ *
+ * `command` was repeatable until Emprise (#267) gave it a price: it now spends
+ * one charge and its Calamine cost, so repeating it would buy two orders for a
+ * single charge — the very resource duplication this list exists to prevent.
+ * The same holds for `submit_enemy` and `force_awaken_artefact`.
+ * @see 10-COMBAT.md §3, §4, 11-INVENTORY-ECONOMY §5, §5bis
  */
-const REPEATABLE_BONUS_ACTIONS: readonly CombatAction[] = ['attack', 'command']
+const REPEATABLE_BONUS_ACTIONS: readonly CombatAction[] = ['attack']
 
 /** Whether SOUFFLE's extra action can legitimately repeat this action. */
 export function isRepeatableAsBonusAction(action: CombatAction): boolean {
@@ -426,6 +431,81 @@ function damageEnemy(enemies: CombatEnemy[], targetId: string, amount: number): 
 }
 
 /**
+ * Intimidation (§5): VOLONTÉ against the target's VOLONTÉ. A success makes one
+ * enemy hesitate; a remarkable one reaches two. Shared by `submit_enemy` and
+ * critical-failure galvanising logic.
+ */
+function resolveSubmitEnemy(
+  state: CombatState,
+  base: Pick<CombatLogEntry, 'round' | 'actor' | 'action'>,
+  targetId: string | undefined,
+  rng: () => number
+): PlayerTurnResult {
+  const target = pickTarget(state, targetId)
+  if (!target) {
+    return { state, entry: { ...base, narrative: '' } }
+  }
+
+  // The opposed roll is an active d20 on the enemy's side, not a fixed DC.
+  const opposed = rollD20(rng) + attributeModifier(target.attributes.will)
+  const roll = rollAgainst(state.player.attributes, 'will', opposed, rng)
+
+  if (!roll.success) {
+    // Critical failure galvanises the camp: every enemy attacks with
+    // advantage next turn, carried as `galvanised` on the instances.
+    const enemies =
+      roll.critical === 'failure'
+        ? state.enemies.map((enemy) =>
+            enemy.isAlive
+              ? { ...enemy, combatConditions: withCondition(enemy.combatConditions, 'engaged') }
+              : enemy
+          )
+        : state.enemies
+    return {
+      state: { ...state, enemies, galvanised: roll.critical === 'failure' },
+      entry: { ...base, targetId: target.id, roll: roll.roll, hit: false, narrative: '' },
+    }
+  }
+
+  // Remarkable success — beating the opposed roll by 5 or more — reaches a
+  // second enemy, per canon.
+  const reach = roll.total - opposed >= REMARKABLE_MARGIN ? 2 : 1
+  const affected = state.enemies
+    .filter((enemy) => enemy.isAlive && canBeIntimidated(enemy))
+    .slice(0, reach)
+    .map((enemy) => enemy.id)
+
+  // Canon: a shaken enemy whose AC is under 11 does not merely hesitate, it
+  // breaks and runs — it leaves the fight for good.
+  const enemies = state.enemies.map((enemy) => {
+    if (!affected.includes(enemy.id)) return enemy
+    return enemy.armourClass < ROUT_ARMOUR_CLASS
+      ? // Routed, not killed: it leaves the fight on its own legs, so it
+        // leaves no corpse to loot either (§9 pays for the dead).
+        { ...enemy, isAlive: false, hasRouted: true }
+      : { ...enemy, combatConditions: withCondition(enemy.combatConditions, 'frightened') }
+  })
+
+  return {
+    state: {
+      ...state,
+      enemies,
+      player: {
+        ...state.player,
+        combatConditions: derivePlayerConditions(state.player.combatConditions, enemies),
+      },
+    },
+    entry: {
+      ...base,
+      targetId: target.id,
+      roll: roll.roll,
+      hit: affected.length > 0,
+      narrative: '',
+    },
+  }
+}
+
+/**
  * Resolves one player action and returns the new state plus the log entry the
  * AI will narrate. The entry carries the die and the damage precisely so the
  * prose can describe them without the model ever choosing them.
@@ -508,63 +588,31 @@ export function resolvePlayerTurn(input: PlayerTurnInput): PlayerTurnResult {
       // Commandement (§5): the order goes to the player's own ally, against a
       // fixed DC. Only reachable when an ally is actually standing there —
       // otherwise the shout has nobody to obey it.
-      if (input.allyKind) {
-        if (!state.hasLivingAlly) {
-          return { state, entry: { ...base, narrative: '' } }
-        }
-        const roll = rollAgainst(state.player.attributes, 'will', COMMAND_DC[input.allyKind], rng)
-        // The ally acting immediately is the session's business, not the
-        // engine's: combat records that the order landed and hands it over.
-        return { state, entry: { ...base, roll: roll.roll, hit: roll.success, narrative: '' } }
+      if (!input.allyKind || !state.hasLivingAlly) {
+        return { state, entry: { ...base, narrative: '' } }
       }
+      const roll = rollAgainst(state.player.attributes, 'will', COMMAND_DC[input.allyKind], rng)
+      // The ally acting immediately is the session's business, not the
+      // engine's: combat records that the order landed and hands it over.
+      return { state, entry: { ...base, roll: roll.roll, hit: roll.success, narrative: '' } }
+    }
 
-      // Intimidation: VOLONTÉ against the target's VOLONTÉ (§5). A success makes
-      // one enemy hesitate; a remarkable one reaches two.
+    // Intimidation (§5): VOLONTÉ against the target's VOLONTÉ. A success makes
+    // one enemy hesitate; a remarkable one reaches two. Also the combat half of
+    // an Emprise-forced "soumettre un ennemi" (#267) — the caller (session
+    // service) is responsible for the charge/Calamine spend, this engine only
+    // resolves the roll.
+    case 'submit_enemy':
+      return resolveSubmitEnemy(state, base, input.targetId, rng)
+
+    case 'awaken_artefact': {
       const target = pickTarget(state, input.targetId)
       if (!target) {
         return { state, entry: { ...base, narrative: '' } }
       }
-
-      // The opposed roll is an active d20 on the enemy's side, not a fixed DC.
-      const opposed = rollD20(rng) + attributeModifier(target.attributes.will)
-      const roll = rollAgainst(state.player.attributes, 'will', opposed, rng)
-
-      if (!roll.success) {
-        // Critical failure galvanises the camp: every enemy attacks with
-        // advantage next turn, carried as `galvanised` on the instances.
-        const enemies =
-          roll.critical === 'failure'
-            ? state.enemies.map((enemy) =>
-                enemy.isAlive
-                  ? { ...enemy, combatConditions: withCondition(enemy.combatConditions, 'engaged') }
-                  : enemy
-              )
-            : state.enemies
-        return {
-          state: { ...state, enemies, galvanised: roll.critical === 'failure' },
-          entry: { ...base, targetId: target.id, roll: roll.roll, hit: false, narrative: '' },
-        }
-      }
-
-      // Remarkable success — beating the opposed roll by 5 or more — reaches a
-      // second enemy, per canon.
-      const reach = roll.total - opposed >= REMARKABLE_MARGIN ? 2 : 1
-      const affected = state.enemies
-        .filter((enemy) => enemy.isAlive && canBeIntimidated(enemy))
-        .slice(0, reach)
-        .map((enemy) => enemy.id)
-
-      // Canon: a shaken enemy whose AC is under 11 does not merely hesitate, it
-      // breaks and runs — it leaves the fight for good.
-      const enemies = state.enemies.map((enemy) => {
-        if (!affected.includes(enemy.id)) return enemy
-        return enemy.armourClass < ROUT_ARMOUR_CLASS
-          ? // Routed, not killed: it leaves the fight on its own legs, so it
-            // leaves no corpse to loot either (§9 pays for the dead).
-            { ...enemy, isAlive: false, hasRouted: true }
-          : { ...enemy, combatConditions: withCondition(enemy.combatConditions, 'frightened') }
-      })
-
+      // Base artefact power: a flat 1d8, no roll to hit (§3).
+      const damage = rollDamage({ count: 1, faces: 8, bonus: 0 }, rng)
+      const enemies = damageEnemy(state.enemies, target.id, damage)
       return {
         state: {
           ...state,
@@ -574,23 +622,21 @@ export function resolvePlayerTurn(input: PlayerTurnInput): PlayerTurnResult {
             combatConditions: derivePlayerConditions(state.player.combatConditions, enemies),
           },
         },
-        entry: {
-          ...base,
-          targetId: target.id,
-          roll: roll.roll,
-          hit: affected.length > 0,
-          narrative: '',
-        },
+        entry: { ...base, targetId: target.id, hit: true, damage, narrative: '' },
       }
     }
 
-    case 'awaken_artefact': {
+    // Emprise-forced artefact awakening (#267): willpower substitutes for the
+    // Tisse-Verbe gift, buying the same guaranteed/amplified effect any
+    // vocation would otherwise need the "Éveil" skill for. No roll to hit —
+    // forcing the artefact's hand always lands — but the damage die is the
+    // amplified 2d8 rather than the base power's flat 1d8.
+    case 'force_awaken_artefact': {
       const target = pickTarget(state, input.targetId)
       if (!target) {
         return { state, entry: { ...base, narrative: '' } }
       }
-      // Base artefact power: a flat 1d8, no roll to hit (§3).
-      const damage = rollDamage({ count: 1, faces: 8, bonus: 0 }, rng)
+      const damage = rollDamage({ count: 2, faces: 8, bonus: 0 }, rng)
       const enemies = damageEnemy(state.enemies, target.id, damage)
       return {
         state: {
@@ -890,7 +936,10 @@ export function endCombat(input: EndCombatInput): CombatResult {
  *
  * @see 10-COMBAT.md §3, §7
  */
-export function projectCombat(state: CombatState, result?: CombatResult): CombatSnapshot {
+export function projectCombat(
+  state: CombatState,
+  result?: CombatResult
+): Omit<CombatSnapshot, 'emprise'> {
   return {
     player: state.player,
     enemies: state.enemies,

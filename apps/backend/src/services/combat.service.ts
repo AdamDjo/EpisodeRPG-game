@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
+import { attributeModifier } from '@grimoire/shared'
 import { z } from 'zod'
 
 import { creaturesForDepth, creaturesForReturn } from '../game-rules/bestiary'
@@ -16,10 +17,18 @@ import {
   resolvePlayerTurn,
   startCombat,
 } from '../game-rules/combat'
+import {
+  EMPRISE_BASE_CALAMINE_COST,
+  canForceAction,
+  empriseSpendCost,
+  maxEmpriseCharges,
+  spendEmpriseCharge,
+} from '../game-rules/emprise'
 import { Prisma } from '../generated/prisma/client'
 
 import type { AiCombatEncounter } from '../ai/scene-validator'
 import type { CombatPromptContext } from '../ai/system-prompt'
+import type { EmpriseAction } from '../game-rules/emprise'
 import type { GameSession } from '../generated/prisma/client'
 import type {
   ActiveCondition,
@@ -36,6 +45,19 @@ import type {
   RunState,
   SurvivalStats,
 } from '@grimoire/shared'
+
+/**
+ * The subset of `CombatAction` that spends an Emprise charge instead of being
+ * freely repeatable — `command` here means only its ally-order branch, the
+ * combat half of `command_ally` (#267). Intimidation's opposed roll and
+ * `awaken_artefact`'s base power stay free: only the forced variants cost a
+ * charge.
+ */
+const EMPRISE_COMBAT_ACTIONS: Partial<Record<CombatAction, EmpriseAction>> = {
+  submit_enemy: 'submit_enemy',
+  command: 'command_ally',
+  force_awaken_artefact: 'force_awaken_artefact',
+}
 
 /**
  * Bridges the pure combat rules (`game-rules/combat.ts`) to the persisted
@@ -377,6 +399,20 @@ export interface CombatTurnOutput {
  */
 export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
   const rng = input.rng ?? Math.random
+  const empriseAction = EMPRISE_COMBAT_ACTIONS[input.action]
+  // A forced action with no charge left never reaches the engine — canon
+  // requires it to already be unavailable, so this is a defensive no-op
+  // (the caller/AI must never offer it at 0 charges in the first place).
+  if (empriseAction && !canForceAction(input.survival)) {
+    return {
+      state: input.state,
+      survival: input.survival,
+      result: null,
+      definitiveDeath: false,
+      entriesThisTurn: [],
+    }
+  }
+
   const playerTurn = resolvePlayerTurn({
     state: input.state,
     action: input.action,
@@ -392,7 +428,15 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
     ...playerTurn.state,
     log: [...playerTurn.state.log, playerTurn.entry],
   }
-  let survival = input.survival
+  let survival = empriseAction
+    ? spendEmpriseCharge(
+        input.survival,
+        empriseSpendCost(
+          EMPRISE_BASE_CALAMINE_COST[empriseAction],
+          attributeModifier(input.state.player.attributes.will)
+        )
+      )
+    : input.survival
   let definitiveDeath = false
   const entriesThisTurn: CombatLogEntry[] = [playerTurn.entry]
 
@@ -458,15 +502,40 @@ export function resolveCombatTurn(input: CombatTurnInput): CombatTurnOutput {
 // ─── Projection ─────────────────────────────────────────────────────────────
 
 /**
+ * Builds the Emprise part of a combat snapshot: current/max charges and the
+ * Calamine cost of each forcing action after the player's WILL resistance, so
+ * the client can show the price before the player spends (#267).
+ */
+function projectEmprise(survival: SurvivalStats, willAttribute: number) {
+  const willModifier = attributeModifier(willAttribute)
+  const costs = Object.fromEntries(
+    (Object.keys(EMPRISE_BASE_CALAMINE_COST) as EmpriseAction[]).map((action) => [
+      action,
+      empriseSpendCost(EMPRISE_BASE_CALAMINE_COST[action], willModifier),
+    ])
+  ) as Record<EmpriseAction, number>
+
+  return {
+    charges: survival.empriseCharges,
+    maxCharges: maxEmpriseCharges(willModifier),
+    costs,
+  }
+}
+
+/**
  * The combat snapshot projected to the client alongside the scene. The client
  * infers nothing: whose turn it is, what each enemy has left and whether the
  * fight is over are all decided here.
  */
 export function projectCombatState(
   state: CombatState,
+  survival: SurvivalStats,
   result?: CombatResult | null
 ): CombatSnapshot {
-  return projectCombat(state, result ?? undefined)
+  return {
+    ...projectCombat(state, result ?? undefined),
+    emprise: projectEmprise(survival, state.player.attributes.will),
+  }
 }
 
 /**
@@ -521,12 +590,18 @@ function describeEntry(state: CombatState, entry: CombatLogEntry): string {
       return entry.hit === true
         ? `${side} shouted an order and it LANDED — ${target} faltered.`
         : `${side} shouted an order and it fell flat.`
+    case 'submit_enemy':
+      return entry.hit === true
+        ? `${side} bent ${target} to their will.`
+        : `${side} tried to bend ${target} to their will and FAILED.`
     case 'use_item':
       return entry.healing && entry.healing > 0
         ? 'The player used something that eased their wounds.'
         : 'The player used an item.'
     case 'awaken_artefact':
       return `${side} woke an artefact.`
+    case 'force_awaken_artefact':
+      return `${side} forced the artefact awake by sheer will, striking ${target} hard.`
     default:
       return entry.narrative
   }

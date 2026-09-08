@@ -142,6 +142,23 @@ export const aiCombatEncounterSchema = z.object({
 
 export type AiCombatEncounter = z.infer<typeof aiCombatEncounterSchema>
 
+/**
+ * Zod schema for the optional per-turn `break_deadlock` proposal (#267). The
+ * AI signals that no other narrative path exists and the player is forcing
+ * one open through sheer Emprise (VOLONTÉ). It only supplies a justification —
+ * the backend is the sole authority on whether the character can even attempt
+ * this: `canForceAction` re-checks the live Emprise charge count independently
+ * of anything the AI believes, and the proposal is silently dropped (no charge
+ * spent, no narration changed) if the character is at 0 charges.
+ * @see docs/canon/04-ATTRIBUTES.md "Les charges d'Emprise" §"Garde-fous"
+ * @see docs/canon/11-INVENTORY-ECONOMY.md §5bis
+ */
+export const aiBreakDeadlockSchema = z.object({
+  reason: z.string().min(1).max(280),
+})
+
+export type AiBreakDeadlock = z.infer<typeof aiBreakDeadlockSchema>
+
 export const sceneTypeSchema = z.enum(['exploration', 'combat', 'dialog', 'event', 'shop', 'rest'])
 
 export const aiSceneSchema = z.object({
@@ -165,6 +182,8 @@ export const aiSceneSchema = z.object({
   rest_requested: aiRestRequestedSchema.nullish().transform((v) => v ?? undefined),
   /** Optional hostile-encounter signal for this turn (#235). Some models emit `null` instead of omitting the field. */
   combat_encounter: aiCombatEncounterSchema.nullish().transform((v) => v ?? undefined),
+  /** Optional forced-deadlock-break signal for this turn (#267). Some models emit `null` instead of omitting the field. */
+  break_deadlock: aiBreakDeadlockSchema.nullish().transform((v) => v ?? undefined),
 })
 
 export type AiScenePayload = z.infer<typeof aiSceneSchema>
